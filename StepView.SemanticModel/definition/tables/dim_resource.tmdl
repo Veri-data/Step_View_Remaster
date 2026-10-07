@@ -1,0 +1,63 @@
+table dim_resource
+	lineageTag: ab4091f1-7135-4f86-99bb-f726d11a9926
+
+	column RessourceId
+		dataType: string
+		lineageTag: 669ab1db-eb2f-4ccd-9add-6c37c7bbb6ec
+		isDefaultLabel
+		summarizeBy: none
+		sourceColumn: RessourceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ressource
+		dataType: string
+		lineageTag: ffb5d3c2-ba87-4523-aab5-2981160b8c9a
+		summarizeBy: none
+		sourceColumn: Ressource
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type ressource'
+		dataType: string
+		lineageTag: a268def8-7299-4615-be12-e09513fdcedd
+		summarizeBy: none
+		sourceColumn: Type ressource
+
+		annotation SummarizationSetBy = Automatic
+
+	column Email
+		dataType: string
+		lineageTag: 07dfa5b2-90d2-4ae4-a7ee-3fe7c644fce8
+		summarizeBy: none
+		sourceColumn: Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column Actif
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 95ca2e04-4500-4ca3-95f6-3c802004e717
+		summarizeBy: none
+		sourceColumn: Actif
+
+		annotation SummarizationSetBy = Automatic
+
+	column membre
+		dataType: string
+		lineageTag: 3d10a26a-1109-49c7-aa11-d1314a6d6240
+		summarizeBy: none
+		sourceColumn: membre
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_resource = m
+		mode: import
+		queryGroup: 01_DIM
+		source =
+				let
+				  Source = Resource,
+				  #"Doublons supprimés" = Table.Distinct(Source, {"RessourceId"})
+				in
+				  #"Doublons supprimés"
+

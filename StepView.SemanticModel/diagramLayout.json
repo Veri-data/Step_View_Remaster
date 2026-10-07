@@ -4,148 +4,78 @@
     {
       "ordinal": 0,
       "scrollPosition": {
-        "x": 552.62625060109485,
+        "x": 0,
         "y": 0
       },
       "nodes": [
         {
           "location": {
-            "x": 1048.7631173976085,
-            "y": 1274.1685362359879
+            "x": 1102.8189936706851,
+            "y": 448.28054073296715
           },
-          "nodeIndex": "Project",
+          "nodeIndex": "dim_projet",
+          "nodeLineageTag": "4a202cdb-7796-4395-a2b9-c67d25c02630",
           "size": {
-            "height": 300,
+            "height": 565.0817414431192,
             "width": 234
           },
-          "zIndex": 0
+          "zIndex": 3
         },
         {
           "location": {
-            "x": 1594.9396175320371,
-            "y": 1014.3197826457936
+            "x": 1120.4001695474942,
+            "y": 5.9586597597188664
           },
-          "nodeIndex": "Project_bucket",
+          "nodeIndex": "dim_resource",
+          "nodeLineageTag": "ab4091f1-7135-4f86-99bb-f726d11a9926",
           "size": {
-            "height": 300,
+            "height": 230.02192182249019,
             "width": 234
           },
-          "zIndex": 0
+          "zIndex": 2
         },
         {
           "location": {
-            "x": 2625.23544829779,
-            "y": 1171.4010339135687
+            "x": 753.31990743468521,
+            "y": 195.09102034671923
           },
-          "nodeIndex": "Project_checklist",
+          "nodeIndex": "fait_assignment",
+          "nodeLineageTag": "6e21934d-4345-4579-9cd8-324d9288baeb",
           "size": {
-            "height": 300,
+            "height": 263.58822247251317,
             "width": 234
           },
-          "zIndex": 0
+          "zIndex": 5
         },
         {
           "location": {
-            "x": 1269.1791102947661,
-            "y": 719.94436288801876
+            "x": 0,
+            "y": 697.16319188710747
           },
-          "nodeIndex": "Project_sprint",
+          "nodeIndex": "fait_checklist",
+          "nodeLineageTag": "aa636b25-0522-4cab-9095-aa7a7a7f98b3",
           "size": {
-            "height": 300,
+            "height": 189.41108424644722,
             "width": 234
           },
-          "zIndex": 0
+          "zIndex": 1
         },
         {
           "location": {
-            "x": 2052.0464102784877,
-            "y": 1125.0861553375232
+            "x": 367.45243680888791,
+            "y": 21.243571015140198
           },
-          "nodeIndex": "Project_Task",
+          "nodeIndex": "fait_Task",
+          "nodeLineageTag": "9d9e2007-633c-4add-ad37-bae024d0ee9e",
           "size": {
-            "height": 300,
+            "height": 1000,
             "width": 234
           },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 1762.1864458181731,
-            "y": 1371.054435326967
-          },
-          "nodeIndex": "project_task_dependency",
-          "size": {
-            "height": 300,
-            "width": 234
-          },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 2048.19898913658,
-            "y": 1584.6188439008758
-          },
-          "nodeIndex": "Project_task_to_label",
-          "size": {
-            "height": 300,
-            "width": 234
-          },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 108.24186628035227,
-            "y": 1278.1952124251161
-          },
-          "nodeIndex": "Project_team",
-          "size": {
-            "height": 300,
-            "width": 234
-          },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 3135.1783331980678,
-            "y": 842.91042048027725
-          },
-          "nodeIndex": "Resource",
-          "nodeLineageTag": "def06d7e-810e-4db4-953d-5296f1b0550f",
-          "size": {
-            "height": 200,
-            "width": 234
-          },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 2850.9935820174378,
-            "y": 787.97552965761929
-          },
-          "nodeIndex": "Resource_assignment",
-          "nodeLineageTag": "4c4fa92a-3c25-4d84-a8c0-ce701b5a8984",
-          "size": {
-            "height": 272,
-            "width": 234
-          },
-          "zIndex": 0
-        },
-        {
-          "location": {
-            "x": 3419.3552214327974,
-            "y": 832.23541311271208
-          },
-          "nodeIndex": "System_user",
-          "nodeLineageTag": "0b63108c-81d7-4cdc-8ab4-5aa724c77e79",
-          "size": {
-            "height": 248,
-            "width": 234
-          },
-          "zIndex": 0
+          "zIndex": 4
         }
       ],
       "name": "Toutes les tables",
-      "zoomValue": 40.0525547248832,
+      "zoomValue": 50.346892102823169,
       "pinKeyFieldsToTop": false,
       "showExtraHeaderInfo": false,
       "hideKeyFieldsWhenCollapsed": false,

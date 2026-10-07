@@ -1,0 +1,46 @@
+table fait_checklist
+	lineageTag: aa636b25-0522-4cab-9095-aa7a7a7f98b3
+
+	column ChecklistId
+		dataType: string
+		lineageTag: 446b38b0-3182-4b87-9738-5f07e9910612
+		summarizeBy: none
+		sourceColumn: ChecklistId
+
+		annotation SummarizationSetBy = Automatic
+
+	column TacheId
+		dataType: string
+		lineageTag: dab9b64c-2eb9-4db0-99e7-8398a1b26603
+		summarizeBy: none
+		sourceColumn: TacheId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Élément
+		dataType: string
+		lineageTag: e5abd60d-b29f-4ca8-8de6-70d3edc7936d
+		summarizeBy: none
+		sourceColumn: Élément
+
+		annotation SummarizationSetBy = Automatic
+
+	column Terminé
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: f8117af4-f71b-46cb-a484-338d3a116ff6
+		summarizeBy: none
+		sourceColumn: Terminé
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fait_checklist = m
+		mode: import
+		queryGroup: 02_FACT
+		source =
+				let
+				  Source = Project_checklist,
+				  #"Colonnes permutées" = Table.ReorderColumns(Source, {"ChecklistId", "TacheId", "Élément", "Terminé"})
+				in
+				  #"Colonnes permutées"
+

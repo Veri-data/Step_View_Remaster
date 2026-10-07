@@ -43,16 +43,646 @@ expression Indicateur_couleur =
 
 expression Project_label =
 		let
-		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
-		    Labels = Source{[Schema = "dbo", Item = "msdyn_projectlabel"]}[Data],
-		    Garder = Table.SelectColumns(Labels, {"msdyn_projectlabelid", "msdyn_projectlabeltext",
-		        "msdyn_colorindexname", "msdyn_projectid"}, MissingField.Ignore),
-		  #"Valeur remplacée" = Table.ReplaceValue(Garder, "Couleur 0", "Couleur 0", Replacer.ReplaceValue, {"msdyn_colorindexname"}),
-		  #"Texte nettoyé" = Table.TransformColumns(#"Valeur remplacée", {{"msdyn_colorindexname", each Text.Clean(_), type nullable text}})
+		    Source = CommonDataService.Database(
+		        EnvURL,
+		        [CreateNavigationProperties = null]
+		    ),
+		
+		    Labels = Source{[
+		        Schema = "dbo",
+		        Item = "msdyn_projectlabel"
+		    ]}[Data],
+		
+		    Garder = Table.SelectColumns(
+		        Labels,
+		        {
+		            "msdyn_projectlabelid",
+		            "msdyn_projectlabeltext",
+		            "msdyn_colorindexname",
+		            "msdyn_colorindex",
+		            "msdyn_projectid"
+		        },
+		        MissingField.Ignore
+		    ),
+		
+		    NettoyerCouleur = Table.TransformColumns(
+		        Garder,
+		        {
+		            {
+		                "msdyn_colorindexname",
+		                each
+		                    if _ = null then
+		                        null
+		                    else
+		                        Text.Trim(
+		                            Text.Replace(
+		                                Text.From(_),
+		                                Character.FromNumber(160),
+		                                " "
+		                            )
+		                        ),
+		                type text
+		            }
+		        }
+		    )
 		in
-		    #"Texte nettoyé"
+		    NettoyerCouleur
 	lineageTag: eb340191-0b44-4f46-a5d1-64e6e8d706de
 	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project =
+		let
+		    // ============ FONCTION : UTC -> heure de Paris (gère l'heure d'été) ============
+		    fnParis = (dt as any) as nullable datetime =>
+		        if dt = null then null
+		        else
+		            let
+		                utc = if Value.Is(dt, type datetimezone)
+		                      then DateTimeZone.RemoveZone(DateTimeZone.ToUtc(dt))
+		                      else DateTime.From(dt),
+		                y = Date.Year(utc),
+		                debutEte = DateTime.From(Date.StartOfWeek(#date(y, 3, 31), Day.Sunday))  + #duration(0,1,0,0),
+		                finEte   = DateTime.From(Date.StartOfWeek(#date(y, 10, 31), Day.Sunday)) + #duration(0,1,0,0),
+		                decalage = if utc >= debutEte and utc < finEte then 2 else 1
+		            in
+		                utc + #duration(0, decalage, 0, 0),
+		
+		    // ============ SOURCE ============
+		    Source  = CommonDataService.Database(EnvURL),
+		    Projets = Source{[Schema="dbo", Item="msdyn_project"]}[Data],
+		
+		    // ============ 1. GARDER LES COLONNES UTILES ============
+		    Garder = Table.SelectColumns(Projets, {
+		        "msdyn_projectid", "msdyn_subject", "msdyn_description",
+		        "msdyn_projectmanager", "msdyn_projectmanagername",
+		        "msdyn_scheduledstart", "msdyn_finish",
+		        "msdyn_progress", "msdyn_effort", "msdyn_effortcompleted",
+		        "msdyn_effortremaining", "msdyn_duration",
+		        "createdon", "modifiedon", "statecode"
+		    }, MissingField.Ignore),
+		
+		    // ============ 2. RENOMMER ============
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_projectid",          "ProjetId"},
+		        {"msdyn_subject",            "Projet"},
+		        {"msdyn_description",        "Description"},
+		        {"msdyn_projectmanager",     "ChefProjetId"},
+		        {"msdyn_projectmanagername", "Chef de projet"},
+		        {"msdyn_scheduledstart",     "DebutUTC"},
+		        {"msdyn_finish",             "FinUTC"},
+		        {"msdyn_progress",           "AvancementBrut"},
+		        {"msdyn_effort",             "Effort (h)"},
+		        {"msdyn_effortcompleted",    "Effort réalisé (h)"},
+		        {"msdyn_effortremaining",    "Effort restant (h)"},
+		        {"msdyn_duration",           "Durée (j)"},
+		        {"createdon",                "CreeLeUTC"},
+		        {"modifiedon",               "ModifieLeUTC"},
+		        {"statecode",                "EtatCode"}
+		    }, MissingField.Ignore),
+		
+		    // ============ 3. NETTOYAGE DU TEXTE ============
+		    Nettoyer = Table.TransformColumns(Renommer, {
+		        {"Projet",         each if _ = null then "(Sans nom)" else Text.Proper(Text.Clean(Text.Trim(_))), type text},
+		        {"Description",    each if _ = null then "" else Text.Clean(Text.Trim(_)), type text},
+		        {"Chef de projet", each if _ = null or Text.Trim(_) = "" then "Non assigné" else Text.Trim(_), type text}
+		    }),
+		
+		    // ============ 4. NUMÉRIQUES : null -> 0 ============
+		    Nombres = Table.ReplaceValue(Nettoyer, null, 0, Replacer.ReplaceValue,
+		        {"AvancementBrut", "Effort (h)", "Effort réalisé (h)", "Effort restant (h)", "Durée (j)"}),
+		
+		    // ============ 5. DATES UTC -> PARIS ============
+		    Debut    = Table.AddColumn(Nombres,   "Début",      each let d = fnParis([DebutUTC]) in if d = null then null else DateTime.Date(d), type date),
+		    Fin      = Table.AddColumn(Debut,     "Fin",        each let d = fnParis([FinUTC])   in if d = null then null else DateTime.Date(d), type date),
+		    Cree     = Table.AddColumn(Fin,       "Créé le",    each let d = fnParis([CreeLeUTC]) in if d = null then null else DateTime.Date(d), type date),
+		    Modifie  = Table.AddColumn(Cree,      "Modifié le", each fnParis([ModifieLeUTC]), type datetime),
+		
+		    // ============ 6. AVANCEMENT NORMALISÉ (0 à 1) ============
+		    // Selon l'environnement, la valeur est stockée en 0-1 ou en 0-100
+		    MaxAv      = List.Max(Modifie[AvancementBrut]),
+		    Avancement = Table.AddColumn(Modifie, "Avancement", each
+		        let v = if MaxAv > 1 then [AvancementBrut] / 100 else [AvancementBrut]
+		        in Number.Round(List.Min({List.Max({v, 0}), 1}), 4), Percentage.Type),
+		
+		    // ============ 7. DATE DU JOUR (au moment de l'actualisation) ============
+		    Aujourdhui = DateTime.Date(fnParis(DateTimeZone.UtcNow())),
+		
+		    // ============ 8. COLONNES CALCULÉES ============
+		    Actif = Table.AddColumn(Avancement, "Actif", each [EtatCode] = 0, type logical),
+		
+		    Statut = Table.AddColumn(Actif, "Statut", each
+		        if not [Actif]                                    then "Fermé"
+		        else if [Avancement] >= 1                         then "Terminé"
+		        else if [Début] = null or [Fin] = null            then "Non planifié"
+		        else if [Fin] < Aujourdhui                        then "En retard"
+		        else if [Début] > Aujourdhui                      then "Non démarré"
+		        else                                                   "En cours", type text),
+		
+		    StatutOrdre = Table.AddColumn(Statut, "Statut ordre", each
+		        Record.FieldOrDefault([#"Non démarré"=1, #"En cours"=2, #"En retard"=3, #"Terminé"=4, #"Fermé"=5, #"Non planifié"=6], [Statut], 9),
+		        Int64.Type),
+		
+		    DureeCal = Table.AddColumn(StatutOrdre, "Durée calendaire (j)", each
+		        if [Début] = null or [Fin] = null then null else Duration.Days([Fin] - [Début]) + 1, Int64.Type),
+		
+		    JoursRestants = Table.AddColumn(DureeCal, "Jours restants", each
+		        if [Fin] = null or [Statut] = "Terminé" or [Statut] = "Fermé" then null
+		        else Duration.Days([Fin] - Aujourdhui), Int64.Type),
+		
+		    JoursRetard = Table.AddColumn(JoursRestants, "Jours de retard", each
+		        if [Statut] = "En retard" then Duration.Days(Aujourdhui - [Fin]) else 0, Int64.Type),
+		
+		    AvAttendu = Table.AddColumn(JoursRetard, "Avancement attendu", each
+		        if [Début] = null or [Fin] = null or [Fin] <= [Début] then null
+		        else List.Min({1, List.Max({0,
+		            Duration.Days(Aujourdhui - [Début]) / Duration.Days([Fin] - [Début])})}),
+		        Percentage.Type),
+		
+		    Ecart = Table.AddColumn(AvAttendu, "Écart avancement", each
+		        if [Avancement attendu] = null then null else [Avancement] - [Avancement attendu],
+		        Percentage.Type),
+		
+		    PctEffort = Table.AddColumn(Ecart, "% effort réalisé", each
+		        if [#"Effort (h)"] = 0 then 0 else [#"Effort réalisé (h)"] / [#"Effort (h)"], Percentage.Type),
+		
+		    Sante = Table.AddColumn(PctEffort, "Santé", each
+		        if [Statut] = "Terminé" or [Statut] = "Fermé"         then "Terminé"
+		        else if [Statut] = "En retard"                         then "Rouge"
+		        else if [Écart avancement] <> null and [Écart avancement] < -0.20 then "Rouge"
+		        else if [Écart avancement] <> null and [Écart avancement] < -0.10 then "Orange"
+		        else                                                        "Vert", type text),
+		
+		    SanteIcone = Table.AddColumn(Sante, "Santé icône", each
+		        Record.FieldOrDefault([Rouge="🔴", Orange="🟠", Vert="🟢", #"Terminé"="✅"], [Santé], "⚪"), type text),
+		
+		    // Colonnes pour la timeline et les segments
+		    AnneeDebut = Table.AddColumn(SanteIcone, "Année début", each if [Début] = null then null else Date.Year([Début]), Int64.Type),
+		    TrimFin    = Table.AddColumn(AnneeDebut, "Trimestre fin", each
+		        if [Fin] = null then null else Text.From(Date.Year([Fin])) & " T" & Text.From(Date.QuarterOfYear([Fin])), type text),
+		    MoisFin    = Table.AddColumn(TrimFin, "Mois fin", each
+		        if [Fin] = null then null else Date.StartOfMonth([Fin]), type date),
+		
+		    // ============ 9. LIENS DIRECTS ============
+		    IdTexte = Table.AddColumn(MoisFin, "IdTexte", each Text.Lower(Text.From([ProjetId])), type text),
+		
+		    LienPlanner = Table.AddColumn(IdTexte, "Lien projet", each
+		        Text.Replace(ModeleURLProjet, "{id}", [IdTexte]), type text),
+		
+		    LienDataverse = Table.AddColumn(LienPlanner, "Lien Dataverse", each
+		        EnvURL & "/main.aspx?pagetype=entityrecord&etn=msdyn_project&id=" & [IdTexte], type text),
+		
+		    // ============ 10. SUPPRIMER LES COLONNES TECHNIQUES ============
+		    Final = Table.RemoveColumns(LienDataverse,
+		        {"DebutUTC", "FinUTC", "CreeLeUTC", "ModifieLeUTC", "AvancementBrut", "EtatCode", "IdTexte"},
+		        MissingField.Ignore),
+		  #"Requêtes fusionnées" = Table.NestedJoin(Final, {"ProjetId"}, Project_team, {"projet_id"}, "Project_team", JoinKind.LeftOuter),
+		  #"Project_team développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "Project_team", {"membre"}, {"membre"}),
+		  #"Requêtes fusionnées 1" = Table.NestedJoin(#"Project_team développé", {"ProjetId"}, Project_sprint, {"project_id"}, "Project_sprint", JoinKind.LeftOuter),
+		  #"Project_sprint développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 1", "Project_sprint", {"sprint_name", "sprint_finish", "sprint_start"}, {"sprint_name", "sprint_finish", "sprint_start"}),
+		  #"Requêtes fusionnées 2" = Table.NestedJoin(#"Project_sprint développé", {"ProjetId"}, Label, {"msdyn_projectid"}, "Label", JoinKind.LeftOuter),
+		  #"Label développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 2", "Label", {"colorindexname", "colorindex", "Background Color Hex Code", "Text Color Hex Code", "Étiquette"}, {"colorindexname", "colorindex", "Background Color Hex Code", "Text Color Hex Code", "Étiquette"}),
+		  #"Requêtes fusionnées 3" = Table.NestedJoin(#"Label développé", {"ChefProjetId"}, System_user, {"systemuserid"}, "System_user", JoinKind.LeftOuter),
+		  #"System_user développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 3", "System_user", {"fullname", "internalemailaddress", "domainname", "title"}, {"fullname", "internalemailaddress", "domainname", "title"})
+		in
+		    #"System_user développé"
+	lineageTag: 3f49a654-07aa-4239-ae72-63efc7af9e6f
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project_Task =
+		let
+		    // ============ SOURCE ============
+		    Source = CommonDataService.Database(EnvURL),
+		    Taches = Source{[Schema = "dbo", Item = "msdyn_projecttask"]}[Data],
+		
+		    // ============ 1. GARDER LES COLONNES UTILES ============
+		    Garder = Table.SelectColumns(Taches, {
+		        "msdyn_projecttaskid", "msdyn_project", "msdyn_projectbucket", "msdyn_parenttask",
+		        "msdyn_subject", "msdyn_description",
+		        "msdyn_displaysequence", "msdyn_outlinelevel",
+		        "msdyn_scheduledstart", "msdyn_scheduledend",
+		        "msdyn_duration", "msdyn_effort", "msdyn_effortcompleted", "msdyn_effortremaining",
+		        "msdyn_progress", "msdyn_priority",
+		        "msdyn_iscritical", "msdyn_ismilestone", "msdyn_summary",
+		        "createdon", "modifiedon"
+		    }, MissingField.Ignore),
+		
+		    // ============ 2. RENOMMER ============
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_projecttaskid",   "TacheId"},
+		        {"msdyn_project",         "ProjetId"},
+		        {"msdyn_projectbucket",   "BucketId"},
+		        {"msdyn_parenttask",      "TacheParenteId"},
+		        {"msdyn_subject",         "Tâche"},
+		        {"msdyn_description",     "Description"},
+		        {"msdyn_displaysequence", "Ordre"},
+		        {"msdyn_outlinelevel",    "Niveau"},
+		        {"msdyn_scheduledstart",  "DebutUTC"},
+		        {"msdyn_scheduledend",    "FinUTC"},
+		        {"msdyn_duration",        "Durée (j)"},
+		        {"msdyn_effort",          "Effort (h)"},
+		        {"msdyn_effortcompleted", "Effort réalisé (h)"},
+		        {"msdyn_effortremaining", "Effort restant (h)"},
+		        {"msdyn_progress",        "AvancementBrut"},
+		        {"msdyn_priority",        "PrioriteCode"},
+		        {"msdyn_iscritical",      "Critique"},
+		        {"msdyn_ismilestone",     "Jalon"},
+		        {"msdyn_summary",         "Récapitulative"},
+		        {"createdon",             "CreeLeUTC"},
+		        {"modifiedon",            "ModifieLeUTC"}
+		    }, MissingField.Ignore),
+		
+		    // ============ 3. TYPES DES CLÉS (GUID -> texte minuscule) ============
+		    Cles = Table.TransformColumns(Renommer, {
+		        {"TacheId",        each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"ProjetId",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"BucketId",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"TacheParenteId", each if _ = null then null else Text.Lower(Text.From(_)), type text}
+		    }),
+		
+		    // ============ 4. NETTOYAGE TEXTE ============
+		    Nettoyer = Table.TransformColumns(Cles, {
+		        {"Tâche",       each if _ = null or Text.Trim(_) = "" then "(Sans titre)" else Text.Clean(Text.Trim(_)), type text},
+		        {"Description", each if _ = null then "" else Text.Clean(Text.Trim(_)), type text}
+		    }),
+		
+		    // ============ 5. NUMÉRIQUES ET BOOLÉENS : null -> valeur par défaut ============
+		    Nombres = Table.ReplaceValue(Nettoyer, null, 0, Replacer.ReplaceValue,
+		        {"AvancementBrut", "Effort (h)", "Effort réalisé (h)", "Effort restant (h)", "Durée (j)", "Ordre"}),
+		    Niveau  = Table.ReplaceValue(Nombres, null, 1, Replacer.ReplaceValue, {"Niveau"}),
+		    Bools   = Table.ReplaceValue(Niveau, null, false, Replacer.ReplaceValue, {"Critique", "Jalon", "Récapitulative"}),
+		    Types   = Table.TransformColumnTypes(Bools, {
+		        {"Ordre", type number}, {"Niveau", Int64.Type},
+		        {"Critique", type logical}, {"Jalon", type logical}, {"Récapitulative", type logical}
+		    }),
+		
+		    // ============ 6. DATES UTC -> PARIS ============
+		    Debut   = Table.AddColumn(Types,  "Début",      each let d = fnParis([DebutUTC])  in if d = null then null else DateTime.Date(d), type date),
+		    Fin     = Table.AddColumn(Debut,  "Échéance",   each let d = fnParis([FinUTC])    in if d = null then null else DateTime.Date(d), type date),
+		    Cree    = Table.AddColumn(Fin,    "Créé le",    each let d = fnParis([CreeLeUTC]) in if d = null then null else DateTime.Date(d), type date),
+		    Modifie = Table.AddColumn(Cree,   "Modifié le", each fnParis([ModifieLeUTC]), type datetime),
+		
+		    // ============ 7. AVANCEMENT NORMALISÉ (0 à 1) ============
+		    MaxAv      = List.Max(Modifie[AvancementBrut]),
+		    Avancement = Table.AddColumn(Modifie, "Avancement", each
+		        let v = if MaxAv > 1 then [AvancementBrut] / 100 else [AvancementBrut]
+		        in Number.Round(List.Min({List.Max({v, 0}), 1}), 4), Percentage.Type),
+		
+		    Aujourdhui = DateTime.Date(fnParis(DateTimeZone.UtcNow())),
+		
+		    // ============ 8. TYPE DE TÂCHE ============
+		    TypeTache = Table.AddColumn(Avancement, "Type", each
+		        if [Jalon] then "Jalon"
+		        else if [Récapitulative] then "Récapitulative"
+		        else "Tâche", type text),
+		
+		    // ============ 9. PRIORITÉ EN CLAIR ============
+		    // Échelle Planner : 0-1 Urgente | 2-4 Importante | 5-7 Moyenne | 8-10 Faible
+		    Priorite = Table.AddColumn(TypeTache, "Priorité", each
+		        let p = [PrioriteCode] in
+		        if p = null then "Moyenne"
+		        else if p <= 1 then "Urgente"
+		        else if p <= 4 then "Importante"
+		        else if p <= 7 then "Moyenne"
+		        else "Faible", type text),
+		
+		    PrioriteOrdre = Table.AddColumn(Priorite, "Priorité ordre", each
+		        Record.FieldOrDefault([Urgente=1, Importante=2, Moyenne=3, Faible=4], [Priorité], 9), Int64.Type),
+		
+		    // ============ 10. STATUT ============
+		    Statut = Table.AddColumn(PrioriteOrdre, "Statut", each
+		        if [Avancement] >= 1                              then "Terminée"
+		        else if [Échéance] = null                         then "Non planifiée"
+		        else if [Échéance] < Aujourdhui                   then "En retard"
+		        else if [Avancement] = 0 and ([Début] = null or [Début] > Aujourdhui) then "Non démarrée"
+		        else                                                   "En cours", type text),
+		
+		    StatutOrdre = Table.AddColumn(Statut, "Statut ordre", each
+		        Record.FieldOrDefault([#"Non démarrée"=1, #"En cours"=2, #"En retard"=3, #"Terminée"=4, #"Non planifiée"=5], [Statut], 9),
+		        Int64.Type),
+		
+		    // ============ 11. INDICATEURS DE DÉLAI ============
+		    JoursRestants = Table.AddColumn(StatutOrdre, "Jours restants", each
+		        if [Échéance] = null or [Statut] = "Terminée" then null
+		        else Duration.Days([Échéance] - Aujourdhui), Int64.Type),
+		
+		    JoursRetard = Table.AddColumn(JoursRestants, "Jours de retard", each
+		        if [Statut] = "En retard" then Duration.Days(Aujourdhui - [Échéance]) else 0, Int64.Type),
+		
+		    Echeance = Table.AddColumn(JoursRetard, "Échéance (catégorie)", each
+		        if [Statut] = "Terminée"          then "Terminée"
+		        else if [Échéance] = null         then "Sans date"
+		        else if [Jours restants] < 0      then "Dépassée"
+		        else if [Jours restants] = 0      then "Aujourd'hui"
+		        else if [Jours restants] <= 7     then "Cette semaine"
+		        else if [Jours restants] <= 30    then "Ce mois-ci"
+		        else "Plus tard", type text),
+		
+		    DureeCal = Table.AddColumn(Echeance, "Durée calendaire (j)", each
+		        if [Début] = null or [Échéance] = null then null
+		        else Duration.Days([Échéance] - [Début]) + 1, Int64.Type),
+		
+		    // ============ 12. AFFICHAGE HIÉRARCHIQUE (WBS) ============
+		    Indente = Table.AddColumn(DureeCal, "Tâche (indentée)", each
+		        Text.Repeat("    ", List.Max({[Niveau] - 1, 0}))
+		        & (if [Jalon] then "◆ " else if [Récapitulative] then "▸ " else "")
+		        & [Tâche], type text),
+		
+		    // Nom de la tâche parente (recherche dans la table elle-même)
+		    Parents    = Table.Buffer(Table.SelectColumns(Indente, {"TacheId", "Tâche"})),
+		    DictParent = Record.FromList(Parents[Tâche], Parents[TacheId]),
+		    NomParent  = Table.AddColumn(Indente, "Tâche parente", each
+		        if [TacheParenteId] = null then "(Racine)"
+		        else Record.FieldOrDefault(DictParent, [TacheParenteId], "(Inconnue)"), type text),
+		
+		    // Tâche feuille = vraie tâche de travail (à utiliser pour compter les tâches)
+		    Feuille = Table.AddColumn(NomParent, "Est tâche de travail", each not [Récapitulative], type logical),
+		
+		    // ============ 13. LIENS ============
+		    LienPlan = Table.AddColumn(Feuille, "Lien plan", each
+		        if [ProjetId] = null then null else Text.Replace(ModeleURLProjet, "{id}", [ProjetId]), type text),
+		
+		    LienTache = Table.AddColumn(LienPlan, "Lien tâche", each
+		        EnvURL & "/main.aspx?pagetype=entityrecord&etn=msdyn_projecttask&id=" & [TacheId], type text),
+		
+		    // ============ 14. SUPPRIMER LES COLONNES TECHNIQUES ============
+		    Final = Table.RemoveColumns(LienTache,
+		        {"DebutUTC", "FinUTC", "CreeLeUTC", "ModifieLeUTC", "AvancementBrut", "PrioriteCode"},
+		        MissingField.Ignore),
+		  #"Requêtes fusionnées" = Table.NestedJoin(Final, {"ProjetId", "BucketId"}, Project_bucket, {"ProjetId", "BucketId"}, "Project_bucket", JoinKind.LeftOuter),
+		  #"Project_bucket développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "Project_bucket", {"Bucket"}, {"Bucket"})
+		in
+		    #"Project_bucket développé"
+	lineageTag: 5dc57e4d-a4cd-483b-b786-15ebfbfa16bf
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Resource_assignment =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Affectations = Source{[Schema = "dbo", Item = "msdyn_resourceassignment"]}[Data],
+		    Garder = Table.SelectColumns(Affectations, {
+		        "msdyn_resourceassignmentid", "msdyn_bookableresourceid", "msdyn_taskid",
+		        "msdyn_projectid", "msdyn_start", "msdyn_finish", "msdyn_plannedwork"
+		    }, MissingField.Ignore),
+		
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_resourceassignmentid", "AffectationId"},
+		        {"msdyn_bookableresourceid",   "RessourceId"},
+		        {"msdyn_taskid",               "TacheId"},
+		        {"msdyn_projectid",            "ProjetId"},
+		        {"msdyn_start",                "Début"},
+		        {"msdyn_finish",               "Fin"},
+		        {"msdyn_plannedwork",          "Travail planifié (h)"}
+		    }),
+		
+		    // ============ LECTURE DU JSON DE TRAVAIL PLANIFIÉ ============
+		    fnHeures = (v as any) as number =>
+		        if v = null then 0
+		        else if Value.Is(v, type number) then Number.Round(v, 2)
+		        else
+		            let
+		                j     = try Json.Document(Text.From(v)) otherwise null,
+		                liste = if j is list then j else if j is record then {j} else {},
+		                h     = List.Transform(liste, each
+		                            try Number.From(
+		                                Record.FieldOrDefault(_, "Hours",
+		                                Record.FieldOrDefault(_, "Work", 0)))
+		                            otherwise 0)
+		            in
+		                Number.Round(List.Sum(h) ?? 0, 2),
+		
+		    // ============ CLÉS + DATES + TRAVAIL ============
+		    Transformer = Table.TransformColumns(Renommer, {
+		        {"AffectationId", each Text.Lower(Text.From(_)), type text},
+		        {"RessourceId",   each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"TacheId",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"ProjetId",      each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"Début",         each let d = fnParis(_) in if d = null then null else DateTime.Date(d), type date},
+		        {"Fin",           each let d = fnParis(_) in if d = null then null else DateTime.Date(d), type date},
+		        {"Travail planifié (h)", fnHeures, type number}
+		    }),
+		
+		    Filtrer = Table.SelectRows(Transformer, each [TacheId] <> null and [RessourceId] <> null)
+		in
+		    Filtrer
+	lineageTag: b8938230-0d53-4330-881d-4be0f4781619
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Resource =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Ressources = Source{[Schema = "dbo", Item = "bookableresource"]}[Data],
+		    Garder = Table.SelectColumns(Ressources,
+		        {"bookableresourceid", "name", "resourcetypename", "userid"}, MissingField.Ignore),
+		
+		    // ============ UTILISATEURS (pour l'email / UPN) ============
+		    Utilisateurs = Table.Buffer(
+		        Table.SelectColumns(
+		            Source{[Schema = "dbo", Item = "systemuser"]}[Data],
+		            {"systemuserid", "domainname", "internalemailaddress", "isdisabled"},
+		            MissingField.Ignore)),
+		
+		    Fusion = Table.NestedJoin(Garder, {"userid"}, Utilisateurs, {"systemuserid"}, "U", JoinKind.LeftOuter),
+		    Developper = Table.ExpandTableColumn(Fusion, "U",
+		        {"domainname", "internalemailaddress", "isdisabled"},
+		        {"UPN", "MailInterne", "Desactive"}),
+		
+		    // ============ RENOMMER ============
+		    Renommer = Table.RenameColumns(Developper, {
+		        {"bookableresourceid", "RessourceId"},
+		        {"name",               "Ressource"},
+		        {"resourcetypename",   "Type ressource"}
+		    }),
+		
+		    // ============ COLONNES UTILES ============
+		    // UPN en priorité (= identifiant de connexion, ce que renvoie USERPRINCIPALNAME())
+		    Email = Table.AddColumn(Renommer, "Email", each
+		        let e = if [UPN] <> null and Text.Contains([UPN], "@") then [UPN] else [MailInterne]
+		        in if e = null then null else Text.Lower(Text.Trim(e)), type text),
+		
+		    Actif = Table.AddColumn(Email, "Actif", each [Desactive] <> true, type logical),
+		
+		    // ============ NETTOYAGE ============
+		    Nettoyer = Table.TransformColumns(Actif, {
+		        {"RessourceId",    each Text.Lower(Text.From(_)), type text},
+		        {"Ressource",      each if _ = null or Text.Trim(_) = "" then "(Sans nom)" else Text.Trim(_), type text},
+		        {"Type ressource", each if _ = null then "Inconnu" else _, type text}
+		    }),
+		
+		    Final = Table.RemoveColumns(Nettoyer, {"userid", "UPN", "MailInterne", "Desactive"}),
+		    SansDoublon = Table.Distinct(Final, {"RessourceId"}),
+		  #"Texte en majuscules" = Table.TransformColumns(SansDoublon, {{"RessourceId", each Text.Upper(_), type text}}),
+		  #"Requêtes fusionnées" = Table.NestedJoin(#"Texte en majuscules", {"RessourceId"}, Project_team, {"ressource_id"}, "Project_team", JoinKind.LeftOuter),
+		  #"Project_team développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "Project_team", {"membre"}, {"membre"})
+		in
+		    #"Project_team développé"
+	lineageTag: defd35eb-ba8a-46f6-9777-fb26850f68c6
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project_bucket =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Buckets = Source{[Schema = "dbo", Item = "msdyn_projectbucket"]}[Data],
+		    Garder = Table.SelectColumns(Buckets,
+		        {"msdyn_projectbucketid", "msdyn_name", "msdyn_project"}, MissingField.Ignore),
+		
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_projectbucketid", "BucketId"},
+		        {"msdyn_name",            "Bucket"},
+		        {"msdyn_project",         "ProjetId"}
+		    }),
+		
+		    Transformer = Table.TransformColumns(Renommer, {
+		        {"BucketId", each Text.Lower(Text.From(_)), type text},
+		        {"Bucket",   each if _ = null or Text.Trim(_) = "" then "(Sans nom)" else Text.Trim(_), type text},
+		        {"ProjetId", each if _ = null then null else Text.Lower(Text.From(_)), type text}
+		    })
+		in
+		    Transformer
+	lineageTag: b93c647b-d9b3-4c0c-a342-3eb7ca939d57
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project_checklist =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Checklist = Source{[Schema = "dbo", Item = "msdyn_projectchecklist"]}[Data],
+		    Garder = Table.SelectColumns(Checklist, {"msdyn_projectchecklistid", "msdyn_name",
+		        "msdyn_projectchecklistcompleted", "msdyn_projecttask"}, MissingField.Ignore),
+		
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_projectchecklistid",        "ChecklistId"},
+		        {"msdyn_name",                      "Élément"},
+		        {"msdyn_projectchecklistcompleted", "Terminé"},
+		        {"msdyn_projecttask",               "TacheId"}
+		    }),
+		  #"TacheId développé" = Table.ExpandRecordColumn(Renommer, "TacheId", {"msdyn_projecttaskid"}, {"msdyn_projecttaskid"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"TacheId développé", {{"msdyn_projecttaskid", "TacheId"}})
+		in
+		    #"Colonnes renommées"
+	lineageTag: 310800b9-2642-4f41-8df7-63be1d3a07e8
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Exception
+
+expression Project_sprint =
+		let
+		  Source = CommonDataService.Database(EnvURL),
+		  #"Navigation 1" = Source{[Schema = "dbo", Item = "msdyn_projectsprint"]}[Data],
+		  #"Choisir des colonnes" = Table.SelectColumns(#"Navigation 1", {"msdyn_projectsprintid", "msdyn_name", "msdyn_finish", "msdyn_project", "msdyn_start"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Choisir des colonnes", {{"msdyn_projectsprintid", "projects_sprint_id"}, {"msdyn_name", "sprint_name"}, {"msdyn_finish", "sprint_finish"}, {"msdyn_project", "project_id"}, {"msdyn_start", "sprint_start"}})
+		in
+		  #"Colonnes renommées"
+	lineageTag: 706a9100-fe81-403a-a0ee-172774f1eca7
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression project_task_dependency =
+		let
+		  Source = CommonDataService.Database(EnvURL),
+		  #"Navigation 1" = Source{[Schema = "dbo", Item = "msdyn_projecttaskdependency"]}[Data],
+		  #"Choisir des colonnes" = Table.SelectColumns(#"Navigation 1", {"msdyn_projecttaskdependencyid", "msdyn_predecessortask", "msdyn_project", "msdyn_successortask", "msdyn_projecttaskdependencylinktype"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Choisir des colonnes", {{"msdyn_projecttaskdependencyid", "project_task_dependency_id"}, {"msdyn_predecessortask", "predecessor_task"}, {"msdyn_project", "project"}, {"msdyn_successortask", "successor_task"}, {"msdyn_projecttaskdependencylinktype", "project_task_dependency_link_type"}})
+		in
+		  #"Colonnes renommées"
+	lineageTag: 181f13e9-456a-47c7-8774-19f9edd52aa5
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project_task_to_label =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Liens = Source{[Schema = "dbo", Item = "msdyn_projecttasktolabel"]}[Data],
+		  #"Choisir des colonnes" = Table.SelectColumns(Liens, {"msdyn_projecttasktolabelid", "msdyn_projectlabelid", "msdyn_projecttaskid"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Choisir des colonnes", {{"msdyn_projecttaskid", "tache_id"}, {"msdyn_projectlabelid", "etiquette_id"}, {"msdyn_projecttasktolabelid", "tache_label_id"}})
+		in
+		    #"Colonnes renommées"
+	lineageTag: a63d05de-e259-4d14-97de-19c94ecee5fd
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Project_team =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Equipe = Source{[Schema = "dbo", Item = "msdyn_projectteam"]}[Data],
+		    Garder = Table.SelectColumns(Equipe, {"msdyn_projectteamid", "msdyn_name",
+		        "msdyn_bookableresourceid", "msdyn_project", "email"}, MissingField.Ignore),
+		
+		    Renommer = Table.RenameColumns(Garder, {
+		        {"msdyn_projectteamid",      "MembreId"},
+		        {"msdyn_name",               "Membre"},
+		        {"msdyn_bookableresourceid", "RessourceId"},
+		        {"msdyn_project",            "ProjetId"},
+		        {"email",                    "EmailEquipe"}
+		    }),
+		
+		    Cles = Table.TransformColumns(Renommer, {
+		        {"MembreId",    each Text.Lower(Text.From(_)), type text},
+		        {"RessourceId", each if _ = null then null else Text.Lower(Text.From(_)), type text},
+		        {"ProjetId",    each if _ = null then null else Text.Lower(Text.From(_)), type text}
+		    }),
+		  #"Colonnes supprimées" = Table.RemoveColumns(Cles, {"EmailEquipe"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Colonnes supprimées", {{"MembreId", "membre_id"}, {"Membre", "membre"}, {"RessourceId", "ressource_id"}, {"ProjetId", "projet_id"}}),
+		  #"Texte en majuscules" = Table.TransformColumns(#"Colonnes renommées", {{"membre_id", each Text.Upper(_), type text}, {"ressource_id", each Text.Upper(_), type text}, {"projet_id", each Text.Upper(_), type text}})
+		in
+		    #"Texte en majuscules"
+	lineageTag: 815c61c9-037c-4e8c-905e-c684df510d0e
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression System_user =
+		let
+		  Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		  #"Navigation 1" = Source{[Schema = "dbo", Item = "systemuser"]}[Data],
+		  #"Choisir des colonnes" = Table.SelectColumns(#"Navigation 1", {"systemuserid", "fullname", "internalemailaddress","domainname","title","businessunitidname","isdisabled"}),
+		  #"Lignes filtrées 1" = Table.SelectRows(#"Choisir des colonnes", each ([isdisabled] = false)),
+		  #"Lignes filtrées" = Table.SelectRows(#"Lignes filtrées 1", each Text.Contains([internalemailaddress], "@verinet.ci"))
+		in
+		  #"Lignes filtrées"
+	lineageTag: b26afa2c-a41d-4c68-8195-68db798436d1
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression Label =
+		let
+		  Source = Table.NestedJoin(Project_label, {"msdyn_colorindex"}, Indicateur_couleur, {"msdyn_colorindex"}, "Indicateur_couleur", JoinKind.LeftOuter),
+		  #"Indicateur_couleur développé" = Table.ExpandTableColumn(Source, "Indicateur_couleur", {"Color Name", "Background Color Hex Code", "Text Color Hex Code"}, {"Color Name", "Background Color Hex Code", "Text Color Hex Code"}),
+		  #"Colonne personnalisée ajoutée" = Table.AddColumn(#"Indicateur_couleur développé", "Combined Label Text", each if [msdyn_projectlabeltext] = null then [Color Name] else [msdyn_projectlabeltext]),
+		  #"Type de colonne changé" = Table.TransformColumnTypes(#"Colonne personnalisée ajoutée", {{"Combined Label Text", type text}}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Type de colonne changé", {{"msdyn_projectlabelid", "EtiquetteId"}, {"Combined Label Text", "Étiquette"}}),
+		  #"Colonnes supprimées" = Table.RemoveColumns(#"Colonnes renommées", {"msdyn_projectlabeltext"}),
+		  #"Colonnes renommées 1" = Table.RenameColumns(#"Colonnes supprimées", {{"Color Name", "Couleur Name"}, {"msdyn_colorindexname", "colorindexname"}, {"msdyn_colorindex", "colorindex"}})
+		in
+		  #"Colonnes renommées 1"
+	lineageTag: c5469919-80b7-4460-adfc-23b5468070f1
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+
+expression dim_task_dependency =
+		let
+		  Source = project_task_dependency,
+		  #"Doublons supprimés" = Table.Distinct(Source, {"project_task_dependency_id"}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Doublons supprimés", {{"project", "project_id"}})
+		in
+		  #"Colonnes renommées"
+	lineageTag: 10b93ae3-45bb-4344-bd4f-7d0fd98b631f
+	queryGroup: 01_DIM
 
 	annotation PBI_ResultType = Table
 
