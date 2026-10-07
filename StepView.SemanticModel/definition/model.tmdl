@@ -19,31 +19,22 @@ queryGroup 02_FACT
 
 	annotation PBI_QueryGroupOrder = 2
 
-annotation __PBI_TimeIntelligenceEnabled = 1
+annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Project","Project_Task","Resource_assignment","Resource","Project_bucket","Project_checklist","Project_label","Project_sprint","project_task_dependency","Project_task_to_label","Project_team","System_user","fait_Task","fait_checklist","fait_assignment","EnvURL","ModeleURLProjet","fnParis","Indicateur_couleur","Label","dim_task_dependency","dim_resource","dim_projet"]
+annotation PBI_QueryOrder = ["Project","Project_Task","Resource_assignment","Resource","Project_bucket","Project_checklist","Project_label","Project_sprint","project_task_dependency","Project_task_to_label","Project_team","System_user","fait_checklist","fait_assignment","fait_equipe","pont_tache_etiquette","EnvURL","ModeleURLProjet","fnParis","Indicateur_couleur","Label","dim_task_dependency","dim_Task","dim_resource","dim_projet","dim_sprint","dim_etiquette"]
 
-annotation PBI_ProTooling = ["DevMode"]
+annotation PBI_ProTooling = ["DevMode","TMDLView_Desktop"]
 
-ref table fait_Task
-ref table DateTableTemplate_170c916f-30ca-4d01-a749-d398ea2f1881
-ref table LocalDateTable_279c8dc6-a7ae-4fe7-ba5e-5fc7e4ac6be2
-ref table LocalDateTable_c753abb0-5e20-40ed-b791-3302094454d3
-ref table LocalDateTable_a65c1244-9ff9-4b53-9058-0570f8a54210
-ref table LocalDateTable_d7c38b74-c4ec-44dc-8c66-a2cd7653055b
+ref table dim_Task
 ref table fait_checklist
 ref table fait_assignment
-ref table LocalDateTable_3e8f7c2f-38b4-4118-9f4e-b17c44c51b1a
-ref table LocalDateTable_f22b4bb8-bca1-44b1-9fb6-7f995596f24b
 ref table dim_resource
 ref table dim_projet
-ref table LocalDateTable_d05632b6-321f-4df7-9145-521cfc5f2fa0
-ref table LocalDateTable_a9080a10-aff7-4453-ab98-a09bdf0c912e
-ref table LocalDateTable_1be9f937-8b25-46c5-b25b-d71a69b230ba
-ref table LocalDateTable_b5f5a259-6e46-4690-a637-93c5d4cb0d3c
-ref table LocalDateTable_c3ff3288-7ce5-4d0a-8dfd-99a0b8f98c2c
-ref table LocalDateTable_c7540a91-c15b-427d-b141-928b206d61ed
-ref table LocalDateTable_82447ecf-316a-4b86-8404-313d6498a2e4
+ref table dim_date
+ref table dim_sprint
+ref table dim_etiquette
+ref table fait_equipe
+ref table pont_tache_etiquette
 
 ref cultureInfo fr-FR
 

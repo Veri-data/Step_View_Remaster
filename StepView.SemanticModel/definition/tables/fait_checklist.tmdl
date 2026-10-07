@@ -11,6 +11,7 @@ table fait_checklist
 
 	column TacheId
 		dataType: string
+		isHidden
 		lineageTag: dab9b64c-2eb9-4db0-99e7-8398a1b26603
 		summarizeBy: none
 		sourceColumn: TacheId
@@ -43,4 +44,6 @@ table fait_checklist
 				  #"Colonnes permutées" = Table.ReorderColumns(Source, {"ChecklistId", "TacheId", "Élément", "Terminé"})
 				in
 				  #"Colonnes permutées"
+
+	annotation PBI_ResultType = Table
 

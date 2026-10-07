@@ -1,0 +1,217 @@
+table dim_date
+	lineageTag: e006428b-bfd5-452c-a83c-d286e8fbf658
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: 5c920200-8adf-41e5-ba44-9504cfc0c64b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Année = YEAR([Date])
+		dataType: int64
+		formatString: 0
+		lineageTag: fa12f6aa-23cb-46a2-b4b3-1c8b2b60b8bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'N° trimestre' = QUARTER([Date])
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3bc94275-dc35-4a9e-98f4-52c3bf3d49e3
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trimestre = "T" & QUARTER([Date])
+		dataType: string
+		lineageTag: c61163df-a28b-4051-b2ba-b8a5dc6016ee
+		summarizeBy: none
+		sortByColumn: 'N° trimestre'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Année trimestre num' = YEAR([Date]) * 10 + QUARTER([Date])
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3d490378-4fe5-4185-b91f-54e020069b40
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Année trimestre' = YEAR([Date]) & " T" & QUARTER([Date])
+		dataType: string
+		lineageTag: f9397e82-2e00-4ef4-8e3c-fc8dd70f0820
+		summarizeBy: none
+		sortByColumn: 'Année trimestre num'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'N° mois' = MONTH([Date])
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: df596f5b-0405-4817-94de-d6a113a5b1d9
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mois = UPPER(LEFT(FORMAT([Date], "mmmm"), 1)) & MID(FORMAT([Date], "mmmm"), 2, 20)
+		dataType: string
+		lineageTag: 77a3ce99-986d-4892-9ed9-5d5d253b0c65
+		summarizeBy: none
+		sortByColumn: 'N° mois'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mois court' = UPPER(LEFT(FORMAT([Date], "mmm"), 1)) & MID(FORMAT([Date], "mmm"), 2, 10)
+		dataType: string
+		lineageTag: 86f0b2bf-3093-44c3-b576-228c3cdc1396
+		summarizeBy: none
+		sortByColumn: 'N° mois'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Année mois num' = YEAR([Date]) * 100 + MONTH([Date])
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 10706fb4-553a-429a-a94b-1a5ff8e752a0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Année mois' = UPPER(LEFT(FORMAT([Date], "mmm yyyy"), 1)) & MID(FORMAT([Date], "mmm yyyy"), 2, 20)
+		dataType: string
+		lineageTag: 30b410a4-8a0b-4d6f-8351-9ccf29748c4c
+		summarizeBy: none
+		sortByColumn: 'Année mois num'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Début de mois' = DATE(YEAR([Date]), MONTH([Date]), 1)
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 136cfa45-5312-4668-99c3-1005ac980d51
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Semaine ISO' = WEEKNUM([Date], 21)
+		dataType: int64
+		formatString: 0
+		lineageTag: c8ce9166-c061-44d7-ad89-076d6fd9ca7b
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Début de semaine' = [Date] - WEEKDAY([Date], 2) + 1
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: b586b2d5-6900-4608-8133-65e8895d5529
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Jour = DAY([Date])
+		dataType: int64
+		formatString: 0
+		lineageTag: 82845cfe-2520-4eac-8a9d-27f5da3cc0bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'N° jour semaine' = WEEKDAY([Date], 2)
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b6c91cd3-3341-42db-9c7f-e6d1a7df2c71
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Jour semaine' = UPPER(LEFT(FORMAT([Date], "dddd"), 1)) & MID(FORMAT([Date], "dddd"), 2, 20)
+		dataType: string
+		lineageTag: 5ab97b7b-43ae-49c5-983f-3100ada639ff
+		summarizeBy: none
+		sortByColumn: 'N° jour semaine'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Jour ouvré' = WEEKDAY([Date], 2) <= 5
+		dataType: boolean
+		formatString: """Oui"";""Oui"";""Non"""
+		lineageTag: 2782bb8c-4750-4d58-9a45-cff5785c8acc
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Décalage mois' = (YEAR([Date]) - YEAR(TODAY())) * 12 + MONTH([Date]) - MONTH(TODAY())
+		dataType: int64
+		formatString: 0
+		lineageTag: caeaf1c5-807a-4aa8-8230-53da7bc10631
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Est passé' = [Date] < TODAY()
+		dataType: boolean
+		formatString: """Oui"";""Oui"";""Non"""
+		lineageTag: 34ac1e45-61f9-4739-b8fa-64b73b94a5cc
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy Calendrier
+		lineageTag: 3de26070-2b21-403f-b7c5-4f3a05aa1755
+
+		level Année
+			lineageTag: 2fc0b09c-c215-4f8d-906e-7bcd8f4b2520
+			column: Année
+
+		level Trimestre
+			lineageTag: 849c4368-bd2e-4cc0-8346-c4779eb1ba4e
+			column: Trimestre
+
+		level Mois
+			lineageTag: ff1a6e92-c64c-4622-854e-55cc2848815b
+			column: Mois
+
+		level Date
+			lineageTag: 195c880e-9233-4b09-a344-1f907a552a48
+			column: Date
+
+	partition dim_date = calculated
+		mode: import
+		source =
+				VAR _Bornes =
+				    FILTER (
+				        {
+				            MIN ( dim_Task[Début] ), MAX ( dim_Task[Début] ),
+				            MIN ( dim_Task[Échéance] ), MAX ( dim_Task[Échéance] ),
+				            MIN ( dim_Task[Créé le] ),
+				            MIN ( dim_projet[Début] ), MAX ( dim_projet[Fin] ),
+				            MIN ( fait_assignment[Début] ), MAX ( fait_assignment[Fin] ),
+				            TODAY ()
+				        },
+				        NOT ISBLANK ( [Value] )
+				    )
+				VAR _Debut = DATE ( YEAR ( MINX ( _Bornes, [Value] ) ), 1, 1 )
+				VAR _Fin = DATE ( YEAR ( MAXX ( _Bornes, [Value] ) ) + 1, 12, 31 )
+				RETURN
+				    CALENDAR ( _Debut, _Fin )
+

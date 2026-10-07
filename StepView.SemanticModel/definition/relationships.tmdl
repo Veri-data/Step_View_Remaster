@@ -1,81 +1,71 @@
-relationship b722375b-52f7-4de5-8930-588e761d9686
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_Task.Début
-	toColumn: LocalDateTable_279c8dc6-a7ae-4fe7-ba5e-5fc7e4ac6be2.Date
-
-relationship c9fcbaad-2b73-44ec-afb9-5f26467459c4
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_Task.Échéance
-	toColumn: LocalDateTable_c753abb0-5e20-40ed-b791-3302094454d3.Date
-
-relationship 91f676ea-0616-40b8-bb0d-a9eb3f1d9a49
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_Task.'Créé le'
-	toColumn: LocalDateTable_a65c1244-9ff9-4b53-9058-0570f8a54210.Date
-
-relationship c5edeacb-8941-431e-88a5-3c12ec55cc0b
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_Task.'Modifié le'
-	toColumn: LocalDateTable_d7c38b74-c4ec-44dc-8c66-a2cd7653055b.Date
-
-relationship 4f607d44-9391-4619-a171-3c0400cbd7d2
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_assignment.Début
-	toColumn: LocalDateTable_3e8f7c2f-38b4-4118-9f4e-b17c44c51b1a.Date
-
-relationship 1ca3ddd5-868b-4c36-a2de-7af159a1b912
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fait_assignment.Fin
-	toColumn: LocalDateTable_f22b4bb8-bca1-44b1-9fb6-7f995596f24b.Date
-
-relationship 7da1e1c6-ca7c-4acc-8039-9a512761c10e
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.Début
-	toColumn: LocalDateTable_d05632b6-321f-4df7-9145-521cfc5f2fa0.Date
-
-relationship 2e32aec1-d669-4051-ab97-b9de092895d4
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.Fin
-	toColumn: LocalDateTable_a9080a10-aff7-4453-ab98-a09bdf0c912e.Date
-
-relationship a356d38c-d952-40d2-86c6-9b4165e5b19a
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.'Créé le'
-	toColumn: LocalDateTable_1be9f937-8b25-46c5-b25b-d71a69b230ba.Date
-
-relationship bd3aab63-fbdb-4445-8820-845a63546e77
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.'Modifié le'
-	toColumn: LocalDateTable_b5f5a259-6e46-4690-a637-93c5d4cb0d3c.Date
-
-relationship c33200d2-081a-4617-9824-a60171e5bf76
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.'Mois fin'
-	toColumn: LocalDateTable_c3ff3288-7ce5-4d0a-8dfd-99a0b8f98c2c.Date
-
 relationship e54e479c-f6d9-6ec0-a58e-cd590124f5b8
 	fromColumn: fait_assignment.RessourceId
 	toColumn: dim_resource.RessourceId
 
 relationship 687e5157-9284-4e13-c091-e6f4826fd3a2
 	fromColumn: fait_assignment.TacheId
-	toColumn: fait_Task.TacheId
+	toColumn: dim_Task.TacheId
 
-relationship 6a050845-8cbc-eac4-cf4c-4fd2903237f2
+relationship ca1cc09b-ee47-a3d7-b031-b43486a7a24b
 	fromColumn: fait_checklist.TacheId
-	toColumn: fait_Task.TacheId
+	toColumn: dim_Task.TacheId
 
-relationship 554230c1-4aae-463e-a253-2402f752db34
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.sprint_finish
-	toColumn: LocalDateTable_c7540a91-c15b-427d-b141-928b206d61ed.Date
-
-relationship d001c48e-c31a-4b9b-90ff-0acd5376b83e
-	joinOnDateBehavior: datePartOnly
-	fromColumn: dim_projet.sprint_start
-	toColumn: LocalDateTable_82447ecf-316a-4b86-8404-313d6498a2e4.Date
-
-relationship 5702a4b1-2695-ea97-c184-4eb86a94231c
-	fromColumn: fait_assignment.ProjetId
+relationship bad6e986-9a66-4f38-b04d-21d8008010cb
+	fromColumn: dim_Task.ProjetId
 	toColumn: dim_projet.ProjetId
+
+relationship 416ce1a4-fd3d-4da4-bf95-ad972aaaddea
+	fromColumn: fait_equipe.ProjetId
+	toColumn: dim_projet.ProjetId
+
+relationship 80e932ae-b482-4c24-b75d-2660ec5f23a4
+	fromColumn: fait_equipe.RessourceId
+	toColumn: dim_resource.RessourceId
+
+relationship 9512421f-b6ac-4862-97eb-d2cd775736a7
+	fromColumn: dim_sprint.ProjetId
+	toColumn: dim_projet.ProjetId
+
+relationship eb82f419-f8bd-4015-bc49-2c95bf31f27f
+	crossFilteringBehavior: bothDirections
+	fromColumn: pont_tache_etiquette.TacheId
+	toColumn: dim_Task.TacheId
+
+relationship 3b3466e4-db20-442a-9d51-f1aaded82e67
+	fromColumn: pont_tache_etiquette.EtiquetteId
+	toColumn: dim_etiquette.EtiquetteId
+
+relationship 094c41c7-07e9-4fd3-9804-ebbb0a5d27fe
+	fromColumn: dim_Task.Échéance
+	toColumn: dim_date.Date
+
+relationship 19549b59-866d-4240-97c1-d36edce02c18
+	isActive: false
+	fromColumn: dim_Task.Début
+	toColumn: dim_date.Date
+
+relationship 2fc59ff1-a499-4a5d-a4c9-20c599caca15
+	isActive: false
+	fromColumn: dim_Task.'Créé le'
+	toColumn: dim_date.Date
+
+relationship 9535fbf5-c766-4bc9-9783-cd810cbedbde
+	isActive: false
+	fromColumn: fait_assignment.Début
+	toColumn: dim_date.Date
+
+relationship d14fea54-a24e-490f-a8d7-d8bda6cf2d31
+	isActive: false
+	fromColumn: fait_assignment.Fin
+	toColumn: dim_date.Date
+
+relationship 184303bf-bbbe-4486-b5fb-024ab9654852
+	isActive: false
+	fromColumn: dim_projet.Début
+	toColumn: dim_date.Date
+
+relationship 29ec1ccc-3fe1-41b9-9089-d0c3b7032bde
+	isActive: false
+	fromColumn: dim_projet.Fin
+	toColumn: dim_date.Date
 

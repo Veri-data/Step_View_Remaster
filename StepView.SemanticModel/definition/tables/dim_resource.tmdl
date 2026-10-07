@@ -43,14 +43,6 @@ table dim_resource
 
 		annotation SummarizationSetBy = Automatic
 
-	column membre
-		dataType: string
-		lineageTag: 3d10a26a-1109-49c7-aa11-d1314a6d6240
-		summarizeBy: none
-		sourceColumn: membre
-
-		annotation SummarizationSetBy = Automatic
-
 	partition dim_resource = m
 		mode: import
 		queryGroup: 01_DIM

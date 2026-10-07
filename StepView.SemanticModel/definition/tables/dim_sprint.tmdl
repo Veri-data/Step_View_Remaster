@@ -1,0 +1,77 @@
+table dim_sprint
+	lineageTag: c24dee1b-46d2-461c-86b4-e71cb0af6e06
+
+	column SprintId
+		dataType: string
+		isHidden
+		lineageTag: 73785001-ea25-4960-91aa-5053696d076a
+		summarizeBy: none
+		sourceColumn: SprintId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjetId
+		dataType: string
+		isHidden
+		lineageTag: 689d1ec8-c4f0-4ca2-9ecd-6c24b7021361
+		summarizeBy: none
+		sourceColumn: ProjetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sprint
+		dataType: string
+		lineageTag: eff40c68-f415-4771-856f-9cfd0566ff95
+		summarizeBy: none
+		sourceColumn: Sprint
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Début sprint'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 46fd0180-8a78-4c85-8f6d-c1fa66d5fcb3
+		summarizeBy: none
+		sourceColumn: Début sprint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Fin sprint'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 841583eb-34dd-43f7-a9c1-6fed6c3055e2
+		summarizeBy: none
+		sourceColumn: Fin sprint
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition dim_sprint = m
+		mode: import
+		queryGroup: 01_DIM
+		source =
+				let
+				    Source = Project_sprint,
+				    Transformer = Table.TransformColumns(Source, {
+				        {"projects_sprint_id", each Text.Lower(Text.From(_)), type text},
+				        {"project_id",         each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"sprint_name",        each if _ = null or Text.Trim(_) = "" then "(Sans nom)" else Text.Trim(_), type text},
+				        {"sprint_start",       each let d = fnParis(_) in if d = null then null else DateTime.Date(d), type date},
+				        {"sprint_finish",      each let d = fnParis(_) in if d = null then null else DateTime.Date(d), type date}
+				    }),
+				    Renommer = Table.RenameColumns(Transformer, {
+				        {"projects_sprint_id", "SprintId"},
+				        {"project_id",         "ProjetId"},
+				        {"sprint_name",        "Sprint"},
+				        {"sprint_start",       "Début sprint"},
+				        {"sprint_finish",      "Fin sprint"}
+				    }),
+				    SansDoublon = Table.Distinct(Renommer, {"SprintId"})
+				in
+				    SansDoublon
+
+	annotation PBI_ResultType = Table
+

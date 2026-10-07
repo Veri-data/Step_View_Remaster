@@ -1,0 +1,18 @@
+createOrReplace
+
+	relationship e54e479c-f6d9-6ec0-a58e-cd590124f5b8
+		fromColumn: fait_assignment.RessourceId
+		toColumn: dim_resource.RessourceId
+
+	relationship 687e5157-9284-4e13-c091-e6f4826fd3a2
+		fromColumn: fait_assignment.TacheId
+		toColumn: dim_Task.TacheId
+
+	relationship 5702a4b1-2695-ea97-c184-4eb86a94231c
+		fromColumn: fait_assignment.ProjetId
+		toColumn: dim_projet.ProjetId
+
+	relationship ca1cc09b-ee47-a3d7-b031-b43486a7a24b
+		fromColumn: fait_checklist.TacheId
+		toColumn: dim_Task.TacheId
+

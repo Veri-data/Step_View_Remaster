@@ -1,4 +1,4 @@
-table fait_Task
+table dim_Task
 	lineageTag: 9d9e2007-633c-4add-ad37-bae024d0ee9e
 
 	column TacheId
@@ -11,6 +11,7 @@ table fait_Task
 
 	column ProjetId
 		dataType: string
+		isHidden
 		lineageTag: d7d9f056-cf42-4cf0-ab08-1f44b95722be
 		summarizeBy: none
 		sourceColumn: ProjetId
@@ -19,6 +20,7 @@ table fait_Task
 
 	column BucketId
 		dataType: string
+		isHidden
 		lineageTag: 759a1801-ff02-4d17-9f1a-9c763a9a8daa
 		summarizeBy: none
 		sourceColumn: BucketId
@@ -27,6 +29,7 @@ table fait_Task
 
 	column TacheParenteId
 		dataType: string
+		isHidden
 		lineageTag: 8b29ec81-8fff-4bd7-aa99-3ba5c1518f94
 		summarizeBy: none
 		sourceColumn: TacheParenteId
@@ -52,7 +55,7 @@ table fait_Task
 	column Ordre
 		dataType: double
 		lineageTag: 691c17d5-d30b-4189-9747-13902f697416
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Ordre
 
 		annotation SummarizationSetBy = Automatic
@@ -63,7 +66,7 @@ table fait_Task
 		dataType: int64
 		formatString: 0
 		lineageTag: 6fd4ceb2-da99-43b3-aea0-503e00d0f872
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Niveau
 
 		annotation SummarizationSetBy = Automatic
@@ -142,11 +145,6 @@ table fait_Task
 		summarizeBy: none
 		sourceColumn: Début
 
-		variation Variation
-			isDefault
-			relationship: b722375b-52f7-4de5-8930-588e761d9686
-			defaultHierarchy: LocalDateTable_279c8dc6-a7ae-4fe7-ba5e-5fc7e4ac6be2.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -157,11 +155,6 @@ table fait_Task
 		lineageTag: 1ca5c026-8fe8-4334-821c-afed402952df
 		summarizeBy: none
 		sourceColumn: Échéance
-
-		variation Variation
-			isDefault
-			relationship: c9fcbaad-2b73-44ec-afb9-5f26467459c4
-			defaultHierarchy: LocalDateTable_c753abb0-5e20-40ed-b791-3302094454d3.'Hiérarchie de dates'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -174,11 +167,6 @@ table fait_Task
 		summarizeBy: none
 		sourceColumn: Créé le
 
-		variation Variation
-			isDefault
-			relationship: 91f676ea-0616-40b8-bb0d-a9eb3f1d9a49
-			defaultHierarchy: LocalDateTable_a65c1244-9ff9-4b53-9058-0570f8a54210.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -190,22 +178,16 @@ table fait_Task
 		summarizeBy: none
 		sourceColumn: Modifié le
 
-		variation Variation
-			isDefault
-			relationship: c5edeacb-8941-431e-88a5-3c12ec55cc0b
-			defaultHierarchy: LocalDateTable_d7c38b74-c4ec-44dc-8c66-a2cd7653055b.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 	column Avancement
 		dataType: double
+		formatString: 0%
 		lineageTag: a15e6cf0-a2b5-4905-a672-39a9d3065b2b
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Avancement
 
 		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column Type
 		dataType: string
@@ -220,14 +202,16 @@ table fait_Task
 		lineageTag: 6f659448-2ef2-418d-be8f-5bc411685af0
 		summarizeBy: none
 		sourceColumn: Priorité
+		sortByColumn: 'Priorité ordre'
 
 		annotation SummarizationSetBy = Automatic
 
 	column 'Priorité ordre'
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: 4dbf9a6d-2faf-4b67-819e-ff8afbcb5398
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Priorité ordre
 
 		annotation SummarizationSetBy = Automatic
@@ -237,14 +221,16 @@ table fait_Task
 		lineageTag: 9b8e5bec-c716-4aed-90d4-862881390933
 		summarizeBy: none
 		sourceColumn: Statut
+		sortByColumn: 'Statut ordre'
 
 		annotation SummarizationSetBy = Automatic
 
 	column 'Statut ordre'
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: 32adab08-ca41-4ff1-8e02-f8dbbba9a6c0
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Statut ordre
 
 		annotation SummarizationSetBy = Automatic
@@ -312,6 +298,7 @@ table fait_Task
 	column 'Lien plan'
 		dataType: string
 		lineageTag: 8cbb42bd-b33e-4d00-a288-5a0aca20ff0f
+		dataCategory: WebUrl
 		summarizeBy: none
 		sourceColumn: Lien plan
 
@@ -320,6 +307,7 @@ table fait_Task
 	column 'Lien tâche'
 		dataType: string
 		lineageTag: 1dbc675e-8173-45ab-a155-dd6eaf33ead9
+		dataCategory: WebUrl
 		summarizeBy: none
 		sourceColumn: Lien tâche
 
@@ -333,12 +321,14 @@ table fait_Task
 
 		annotation SummarizationSetBy = Automatic
 
-	partition fait_Task = m
+	partition dim_Task = m
 		mode: import
-		queryGroup: 02_FACT
+		queryGroup: 01_DIM
 		source =
 				let
 				  Source = Project_Task
 				in
 				  Source
+
+	annotation PBI_ResultType = Table
 

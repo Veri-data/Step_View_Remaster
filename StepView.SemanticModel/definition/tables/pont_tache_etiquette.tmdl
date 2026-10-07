@@ -1,0 +1,53 @@
+table pont_tache_etiquette
+	lineageTag: 3bea45c7-22ba-475e-9cee-39c7eee18e39
+
+	column TacheEtiquetteId
+		dataType: string
+		isHidden
+		lineageTag: bb99ced2-4806-4353-9622-88c52cc9b3ec
+		summarizeBy: none
+		sourceColumn: TacheEtiquetteId
+
+		annotation SummarizationSetBy = Automatic
+
+	column TacheId
+		dataType: string
+		isHidden
+		lineageTag: 1162d8b8-010d-449e-8824-118698fb8410
+		summarizeBy: none
+		sourceColumn: TacheId
+
+		annotation SummarizationSetBy = Automatic
+
+	column EtiquetteId
+		dataType: string
+		isHidden
+		lineageTag: fa198f13-6169-4e10-9264-c80fc0b62f20
+		summarizeBy: none
+		sourceColumn: EtiquetteId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition pont_tache_etiquette = m
+		mode: import
+		queryGroup: 02_FACT
+		source =
+				let
+				    Source = Project_task_to_label,
+				    Transformer = Table.TransformColumns(Source, {
+				        {"tache_label_id", each Text.Lower(Text.From(_)), type text},
+				        {"tache_id",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"etiquette_id",   each if _ = null then null else Text.Lower(Text.From(_)), type text}
+				    }),
+				    Renommer = Table.RenameColumns(Transformer, {
+				        {"tache_label_id", "TacheEtiquetteId"},
+				        {"tache_id",       "TacheId"},
+				        {"etiquette_id",   "EtiquetteId"}
+				    }),
+				    Filtrer = Table.SelectRows(Renommer, each [TacheId] <> null and [EtiquetteId] <> null),
+				    SansDoublon = Table.Distinct(Filtrer, {"TacheId", "EtiquetteId"})
+				in
+				    SansDoublon
+
+	annotation PBI_ResultType = Table
+

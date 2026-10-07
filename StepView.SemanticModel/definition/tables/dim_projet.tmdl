@@ -89,11 +89,6 @@ table dim_projet
 		summarizeBy: none
 		sourceColumn: Début
 
-		variation Variation
-			isDefault
-			relationship: 7da1e1c6-ca7c-4acc-8039-9a512761c10e
-			defaultHierarchy: LocalDateTable_d05632b6-321f-4df7-9145-521cfc5f2fa0.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -104,11 +99,6 @@ table dim_projet
 		lineageTag: df628204-20d5-4356-b4f5-75f414bfbc19
 		summarizeBy: none
 		sourceColumn: Fin
-
-		variation Variation
-			isDefault
-			relationship: 2e32aec1-d669-4051-ab97-b9de092895d4
-			defaultHierarchy: LocalDateTable_a9080a10-aff7-4453-ab98-a09bdf0c912e.'Hiérarchie de dates'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -121,11 +111,6 @@ table dim_projet
 		summarizeBy: none
 		sourceColumn: Créé le
 
-		variation Variation
-			isDefault
-			relationship: a356d38c-d952-40d2-86c6-9b4165e5b19a
-			defaultHierarchy: LocalDateTable_1be9f937-8b25-46c5-b25b-d71a69b230ba.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -137,22 +122,16 @@ table dim_projet
 		summarizeBy: none
 		sourceColumn: Modifié le
 
-		variation Variation
-			isDefault
-			relationship: bd3aab63-fbdb-4445-8820-845a63546e77
-			defaultHierarchy: LocalDateTable_b5f5a259-6e46-4690-a637-93c5d4cb0d3c.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 	column Avancement
 		dataType: double
+		formatString: 0%
 		lineageTag: 2c73fbe8-2ab2-4abb-9936-18f2299b2bcc
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Avancement
 
 		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column Actif
 		dataType: boolean
@@ -168,14 +147,16 @@ table dim_projet
 		lineageTag: 54fb626e-0fc3-4e4a-8e49-8b0428c162c2
 		summarizeBy: none
 		sourceColumn: Statut
+		sortByColumn: 'Statut ordre'
 
 		annotation SummarizationSetBy = Automatic
 
 	column 'Statut ordre'
 		dataType: int64
+		isHidden
 		formatString: 0
 		lineageTag: 3a8d4830-a30c-4d5c-9fd0-af83c90ea06b
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Statut ordre
 
 		annotation SummarizationSetBy = Automatic
@@ -209,33 +190,30 @@ table dim_projet
 
 	column 'Avancement attendu'
 		dataType: double
+		formatString: 0%
 		lineageTag: 13e816c1-042b-40c6-9e1a-48ac3436a7f8
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Avancement attendu
 
 		annotation SummarizationSetBy = Automatic
 
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column 'Écart avancement'
 		dataType: double
+		formatString: 0%
 		lineageTag: 146396bd-e041-4afd-86fb-a72c50b594e2
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: Écart avancement
 
 		annotation SummarizationSetBy = Automatic
 
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column '% effort réalisé'
 		dataType: double
+		formatString: 0%
 		lineageTag: 4e43d6e4-d3ea-4280-9b7e-589d8a2566c0
-		summarizeBy: sum
+		summarizeBy: none
 		sourceColumn: % effort réalisé
 
 		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column Santé
 		dataType: string
@@ -277,11 +255,6 @@ table dim_projet
 		summarizeBy: none
 		sourceColumn: Mois fin
 
-		variation Variation
-			isDefault
-			relationship: c33200d2-081a-4617-9824-a60171e5bf76
-			defaultHierarchy: LocalDateTable_c3ff3288-7ce5-4d0a-8dfd-99a0b8f98c2c.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -289,6 +262,7 @@ table dim_projet
 	column 'Lien projet'
 		dataType: string
 		lineageTag: 62e63c8b-7a4e-4d10-be51-7700d9c36999
+		dataCategory: WebUrl
 		summarizeBy: none
 		sourceColumn: Lien projet
 
@@ -297,93 +271,9 @@ table dim_projet
 	column 'Lien Dataverse'
 		dataType: string
 		lineageTag: 5d1316c0-368d-4b3f-bf93-37a6d6c0603a
+		dataCategory: WebUrl
 		summarizeBy: none
 		sourceColumn: Lien Dataverse
-
-		annotation SummarizationSetBy = Automatic
-
-	column membre
-		dataType: string
-		lineageTag: f19854a0-9d64-4e9b-9c2e-f8d34d70d902
-		summarizeBy: none
-		sourceColumn: membre
-
-		annotation SummarizationSetBy = Automatic
-
-	column sprint_name
-		dataType: string
-		lineageTag: 49b7a85f-e4a0-47ce-b1dd-4e19c9b7c3d9
-		summarizeBy: none
-		sourceColumn: sprint_name
-
-		annotation SummarizationSetBy = Automatic
-
-	column sprint_finish
-		dataType: dateTime
-		formatString: General Date
-		lineageTag: 2c2b0547-cd1e-4bff-8ca2-095fc5e639e0
-		summarizeBy: none
-		sourceColumn: sprint_finish
-
-		variation Variation
-			isDefault
-			relationship: 554230c1-4aae-463e-a253-2402f752db34
-			defaultHierarchy: LocalDateTable_c7540a91-c15b-427d-b141-928b206d61ed.'Hiérarchie de dates'
-
-		annotation SummarizationSetBy = Automatic
-
-	column sprint_start
-		dataType: dateTime
-		formatString: General Date
-		lineageTag: c491f20a-37f9-4078-ba9b-c7638aef588e
-		summarizeBy: none
-		sourceColumn: sprint_start
-
-		variation Variation
-			isDefault
-			relationship: d001c48e-c31a-4b9b-90ff-0acd5376b83e
-			defaultHierarchy: LocalDateTable_82447ecf-316a-4b86-8404-313d6498a2e4.'Hiérarchie de dates'
-
-		annotation SummarizationSetBy = Automatic
-
-	column colorindexname
-		dataType: string
-		lineageTag: 0647f4f3-88af-49c0-87df-ba3cf6aa9a67
-		summarizeBy: none
-		sourceColumn: colorindexname
-
-		annotation SummarizationSetBy = Automatic
-
-	column colorindex
-		dataType: int64
-		formatString: 0
-		lineageTag: 8679b595-2d8e-4512-a25a-ee05cab59bbe
-		summarizeBy: sum
-		sourceColumn: colorindex
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'Background Color Hex Code'
-		dataType: string
-		lineageTag: 691280a4-4024-4179-ac46-8190af0fe034
-		summarizeBy: none
-		sourceColumn: Background Color Hex Code
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'Text Color Hex Code'
-		dataType: string
-		lineageTag: 6ff1a82e-d972-4bc1-8342-4e3de988ea0c
-		summarizeBy: none
-		sourceColumn: Text Color Hex Code
-
-		annotation SummarizationSetBy = Automatic
-
-	column Étiquette
-		dataType: string
-		lineageTag: 2110caef-770c-4908-b406-0cb8507729fa
-		summarizeBy: none
-		sourceColumn: Étiquette
 
 		annotation SummarizationSetBy = Automatic
 
@@ -425,7 +315,8 @@ table dim_projet
 		source =
 				let
 				  Source = Project,
-				  #"Doublons supprimés" = Table.Distinct(Source, {"ProjetId"})
+				  Cle = Table.TransformColumns(Source, {{"ProjetId", each Text.Lower(Text.From(_)), type text}}),
+				  #"Doublons supprimés" = Table.Distinct(Cle, {"ProjetId"})
 				in
 				  #"Doublons supprimés"
 

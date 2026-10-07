@@ -10,8 +10,8 @@
       "nodes": [
         {
           "location": {
-            "x": 1102.8189936706851,
-            "y": 448.28054073296715
+            "x": 17.403983643952316,
+            "y": 630.47291393241
           },
           "nodeIndex": "dim_projet",
           "nodeLineageTag": "4a202cdb-7796-4395-a2b9-c67d25c02630",
@@ -19,12 +19,12 @@
             "height": 565.0817414431192,
             "width": 234
           },
-          "zIndex": 3
+          "zIndex": 5
         },
         {
           "location": {
-            "x": 1120.4001695474942,
-            "y": 5.9586597597188664
+            "x": 1311.8835387458751,
+            "y": 8.1355655876638728
           },
           "nodeIndex": "dim_resource",
           "nodeLineageTag": "ab4091f1-7135-4f86-99bb-f726d11a9926",
@@ -32,12 +32,12 @@
             "height": 230.02192182249019,
             "width": 234
           },
-          "zIndex": 2
+          "zIndex": 8
         },
         {
           "location": {
-            "x": 753.31990743468521,
-            "y": 195.09102034671923
+            "x": 835.43619789416914,
+            "y": 82.019339392420633
           },
           "nodeIndex": "fait_assignment",
           "nodeLineageTag": "6e21934d-4345-4579-9cd8-324d9288baeb",
@@ -45,12 +45,12 @@
             "height": 263.58822247251317,
             "width": 234
           },
-          "zIndex": 5
+          "zIndex": 6
         },
         {
           "location": {
             "x": 0,
-            "y": 697.16319188710747
+            "y": 97.923883530973583
           },
           "nodeIndex": "fait_checklist",
           "nodeLineageTag": "aa636b25-0522-4cab-9095-aa7a7a7f98b3",
@@ -58,24 +58,89 @@
             "height": 189.41108424644722,
             "width": 234
           },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 416.26208569653625,
+            "y": 11.611764067447261
+          },
+          "nodeIndex": "dim_Task",
+          "nodeLineageTag": "9d9e2007-633c-4add-ad37-bae024d0ee9e",
+          "size": {
+            "height": 992.05512032037484,
+            "width": 234
+          },
           "zIndex": 1
         },
         {
           "location": {
-            "x": 367.45243680888791,
-            "y": 21.243571015140198
+            "x": 1618.4899045459715,
+            "y": 307.97042462510194
           },
-          "nodeIndex": "fait_Task",
-          "nodeLineageTag": "9d9e2007-633c-4add-ad37-bae024d0ee9e",
+          "nodeIndex": "dim_date",
+          "nodeLineageTag": "e006428b-bfd5-452c-a83c-d286e8fbf658",
           "size": {
-            "height": 1000,
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1156.9904565287814,
+            "y": 755.3492809167202
+          },
+          "nodeIndex": "dim_etiquette",
+          "nodeLineageTag": "230ab4a5-001e-4703-a69c-a409f029096f",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 14.283663042643184,
+            "y": 1587.9177717617297
+          },
+          "nodeIndex": "dim_sprint",
+          "nodeLineageTag": "c24dee1b-46d2-461c-86b4-e71cb0af6e06",
+          "size": {
+            "height": 238.76994254431725,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 697.85207974842683,
+            "y": 1421.1638034799792
+          },
+          "nodeIndex": "fait_equipe",
+          "nodeLineageTag": "3dd1cf47-8868-49b2-a8a9-982a4cf7259b",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 704.00460085096381,
+            "y": 714.72210055489575
+          },
+          "nodeIndex": "pont_tache_etiquette",
+          "nodeLineageTag": "3bea45c7-22ba-475e-9cee-39c7eee18e39",
+          "size": {
+            "height": 155.63999116827506,
             "width": 234
           },
           "zIndex": 4
         }
       ],
       "name": "Toutes les tables",
-      "zoomValue": 50.346892102823169,
+      "zoomValue": 49.007036774123272,
       "pinKeyFieldsToTop": false,
       "showExtraHeaderInfo": false,
       "hideKeyFieldsWhenCollapsed": false,

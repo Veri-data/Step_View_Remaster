@@ -1,0 +1,62 @@
+table fait_equipe
+	lineageTag: 3dd1cf47-8868-49b2-a8a9-982a4cf7259b
+
+	column MembreId
+		dataType: string
+		isHidden
+		lineageTag: ee63c677-86e1-4722-af2d-9a97f96fe549
+		summarizeBy: none
+		sourceColumn: MembreId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjetId
+		dataType: string
+		isHidden
+		lineageTag: 266a987f-f275-4145-8434-551a33e5b604
+		summarizeBy: none
+		sourceColumn: ProjetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column RessourceId
+		dataType: string
+		isHidden
+		lineageTag: be7cb1ff-2a55-4dee-be8d-05dd342883ec
+		summarizeBy: none
+		sourceColumn: RessourceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Membre
+		dataType: string
+		lineageTag: 767dc0eb-e345-4e50-ac88-9e757e2d2455
+		summarizeBy: none
+		sourceColumn: Membre
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fait_equipe = m
+		mode: import
+		queryGroup: 02_FACT
+		source =
+				let
+				    Source = Project_team,
+				    Renommer = Table.RenameColumns(Source, {
+				        {"membre_id",    "MembreId"},
+				        {"membre",       "Membre"},
+				        {"ressource_id", "RessourceId"},
+				        {"projet_id",    "ProjetId"}
+				    }),
+				    Cles = Table.TransformColumns(Renommer, {
+				        {"MembreId",    each Text.Lower(_), type text},
+				        {"RessourceId", each if _ = null then null else Text.Lower(_), type text},
+				        {"ProjetId",    each if _ = null then null else Text.Lower(_), type text}
+				    }),
+				    Filtrer = Table.SelectRows(Cles, each [ProjetId] <> null),
+				    SansDoublon = Table.Distinct(Filtrer, {"MembreId"})
+				in
+				    SansDoublon
+
+	annotation PBI_ResultType = Table
+

@@ -11,6 +11,7 @@ table fait_assignment
 
 	column RessourceId
 		dataType: string
+		isHidden
 		lineageTag: 5ad15dd8-0a5a-4ac7-89c8-ff77becdc2f8
 		summarizeBy: none
 		sourceColumn: RessourceId
@@ -19,6 +20,7 @@ table fait_assignment
 
 	column TacheId
 		dataType: string
+		isHidden
 		lineageTag: b29f80c8-5de3-4774-85b0-e9d85af86889
 		summarizeBy: none
 		sourceColumn: TacheId
@@ -27,6 +29,7 @@ table fait_assignment
 
 	column ProjetId
 		dataType: string
+		isHidden
 		lineageTag: 8b02305e-4b4b-4790-afbb-e56cc7981e8b
 		summarizeBy: none
 		sourceColumn: ProjetId
@@ -40,11 +43,6 @@ table fait_assignment
 		summarizeBy: none
 		sourceColumn: Début
 
-		variation Variation
-			isDefault
-			relationship: 4f607d44-9391-4619-a171-3c0400cbd7d2
-			defaultHierarchy: LocalDateTable_3e8f7c2f-38b4-4118-9f4e-b17c44c51b1a.'Hiérarchie de dates'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -55,11 +53,6 @@ table fait_assignment
 		lineageTag: d8ce2d9d-e5b5-4109-9bab-3b02bf74c142
 		summarizeBy: none
 		sourceColumn: Fin
-
-		variation Variation
-			isDefault
-			relationship: 1ca3ddd5-868b-4c36-a2de-7af159a1b912
-			defaultHierarchy: LocalDateTable_f22b4bb8-bca1-44b1-9fb6-7f995596f24b.'Hiérarchie de dates'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -83,4 +76,6 @@ table fait_assignment
 				  Source = Resource_assignment
 				in
 				  Source
+
+	annotation PBI_ResultType = Table
 

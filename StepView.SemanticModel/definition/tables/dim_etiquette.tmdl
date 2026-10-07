@@ -1,0 +1,95 @@
+table dim_etiquette
+	lineageTag: 230ab4a5-001e-4703-a69c-a409f029096f
+
+	column EtiquetteId
+		dataType: string
+		isHidden
+		lineageTag: 08c27396-3480-4487-9fc3-d59c1d956a1c
+		summarizeBy: none
+		sourceColumn: EtiquetteId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjetId
+		dataType: string
+		isHidden
+		lineageTag: efdba353-21d6-4003-888f-a6fe786cd495
+		summarizeBy: none
+		sourceColumn: ProjetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Étiquette
+		dataType: string
+		lineageTag: 8eaeb783-7b9c-4adb-8fc1-9cf27dd093e4
+		summarizeBy: none
+		sourceColumn: Étiquette
+
+		annotation SummarizationSetBy = Automatic
+
+	column Couleur
+		dataType: string
+		lineageTag: 3da48aef-4580-42be-8cc2-899260a00680
+		summarizeBy: none
+		sourceColumn: Couleur
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Couleur index'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 36044691-62d3-4b53-8243-96a484acd6b1
+		summarizeBy: none
+		sourceColumn: Couleur index
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Couleur fond'
+		dataType: string
+		lineageTag: 2af8e9f7-5971-4b0c-a3bf-652c90cf9e14
+		summarizeBy: none
+		sourceColumn: Couleur fond
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Couleur texte'
+		dataType: string
+		lineageTag: 2da06fec-80cc-463c-80f6-51150e4131db
+		summarizeBy: none
+		sourceColumn: Couleur texte
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_etiquette = m
+		mode: import
+		queryGroup: 01_DIM
+		source =
+				let
+				    Source = Label,
+				    Garder = Table.SelectColumns(Source, {
+				        "EtiquetteId", "msdyn_projectid", "Étiquette", "Couleur Name",
+				        "colorindex", "Background Color Hex Code", "Text Color Hex Code"
+				    }, MissingField.UseNull),
+				    Renommer = Table.RenameColumns(Garder, {
+				        {"msdyn_projectid",           "ProjetId"},
+				        {"Couleur Name",              "Couleur"},
+				        {"colorindex",                "Couleur index"},
+				        {"Background Color Hex Code", "Couleur fond"},
+				        {"Text Color Hex Code",       "Couleur texte"}
+				    }),
+				    Transformer = Table.TransformColumns(Renommer, {
+				        {"EtiquetteId", each Text.Lower(Text.From(_)), type text},
+				        {"ProjetId",    each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"Étiquette",   each if _ = null or Text.Trim(_) = "" then "(Sans nom)" else Text.Trim(_), type text}
+				    }),
+				    Types = Table.TransformColumnTypes(Transformer, {
+				        {"Couleur", type text}, {"Couleur index", Int64.Type},
+				        {"Couleur fond", type text}, {"Couleur texte", type text}
+				    }),
+				    SansDoublon = Table.Distinct(Types, {"EtiquetteId"})
+				in
+				    SansDoublon
+
+	annotation PBI_ResultType = Table
+

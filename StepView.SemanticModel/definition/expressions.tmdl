@@ -237,13 +237,7 @@ expression Project =
 		    Final = Table.RemoveColumns(LienDataverse,
 		        {"DebutUTC", "FinUTC", "CreeLeUTC", "ModifieLeUTC", "AvancementBrut", "EtatCode", "IdTexte"},
 		        MissingField.Ignore),
-		  #"Requêtes fusionnées" = Table.NestedJoin(Final, {"ProjetId"}, Project_team, {"projet_id"}, "Project_team", JoinKind.LeftOuter),
-		  #"Project_team développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "Project_team", {"membre"}, {"membre"}),
-		  #"Requêtes fusionnées 1" = Table.NestedJoin(#"Project_team développé", {"ProjetId"}, Project_sprint, {"project_id"}, "Project_sprint", JoinKind.LeftOuter),
-		  #"Project_sprint développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 1", "Project_sprint", {"sprint_name", "sprint_finish", "sprint_start"}, {"sprint_name", "sprint_finish", "sprint_start"}),
-		  #"Requêtes fusionnées 2" = Table.NestedJoin(#"Project_sprint développé", {"ProjetId"}, Label, {"msdyn_projectid"}, "Label", JoinKind.LeftOuter),
-		  #"Label développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 2", "Label", {"colorindexname", "colorindex", "Background Color Hex Code", "Text Color Hex Code", "Étiquette"}, {"colorindexname", "colorindex", "Background Color Hex Code", "Text Color Hex Code", "Étiquette"}),
-		  #"Requêtes fusionnées 3" = Table.NestedJoin(#"Label développé", {"ChefProjetId"}, System_user, {"systemuserid"}, "System_user", JoinKind.LeftOuter),
+		  #"Requêtes fusionnées 3" = Table.NestedJoin(Final, {"ChefProjetId"}, System_user, {"systemuserid"}, "System_user", JoinKind.LeftOuter),
 		  #"System_user développé" = Table.ExpandTableColumn(#"Requêtes fusionnées 3", "System_user", {"fullname", "internalemailaddress", "domainname", "title"}, {"fullname", "internalemailaddress", "domainname", "title"})
 		in
 		    #"System_user développé"
@@ -517,12 +511,9 @@ expression Resource =
 		    }),
 		
 		    Final = Table.RemoveColumns(Nettoyer, {"userid", "UPN", "MailInterne", "Desactive"}),
-		    SansDoublon = Table.Distinct(Final, {"RessourceId"}),
-		  #"Texte en majuscules" = Table.TransformColumns(SansDoublon, {{"RessourceId", each Text.Upper(_), type text}}),
-		  #"Requêtes fusionnées" = Table.NestedJoin(#"Texte en majuscules", {"RessourceId"}, Project_team, {"ressource_id"}, "Project_team", JoinKind.LeftOuter),
-		  #"Project_team développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "Project_team", {"membre"}, {"membre"})
+		    SansDoublon = Table.Distinct(Final, {"RessourceId"})
 		in
-		    #"Project_team développé"
+		    SansDoublon
 	lineageTag: defd35eb-ba8a-46f6-9777-fb26850f68c6
 	queryGroup: 00_STAGE
 
