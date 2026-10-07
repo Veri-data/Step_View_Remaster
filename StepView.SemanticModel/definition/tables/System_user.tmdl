@@ -1,0 +1,75 @@
+table System_user
+	lineageTag: 0b63108c-81d7-4cdc-8ab4-5aa724c77e79
+
+	column Utilisateur
+		dataType: string
+		lineageTag: 60762ddb-2611-4a33-8b5c-d2532bcf7913
+		summarizeBy: none
+		sourceColumn: systemuserid
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Nom complet'
+		dataType: string
+		lineageTag: 813cb68a-bb64-4a3a-a4a3-35712160dc6f
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Adresse de messagerie principale'
+		dataType: string
+		lineageTag: 772b0940-36fd-48d9-a59f-612feaf8e98c
+		summarizeBy: none
+		sourceColumn: internalemailaddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Nom d''utilisateur'
+		dataType: string
+		lineageTag: d44b0eb6-8c95-4a6a-bd7f-5d313eedfb4d
+		summarizeBy: none
+		sourceColumn: domainname
+
+		annotation SummarizationSetBy = Automatic
+
+	column Titre
+		dataType: string
+		lineageTag: 8d1c75cc-c187-4380-afb9-fdf59257f24e
+		summarizeBy: none
+		sourceColumn: title
+
+		annotation SummarizationSetBy = Automatic
+
+	column Division
+		dataType: string
+		lineageTag: f30adfa2-d09b-470a-bd82-b49999776d3b
+		summarizeBy: none
+		sourceColumn: businessunitidname
+
+		annotation SummarizationSetBy = Automatic
+
+	column isdisabled
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c6c7f4a7-e24c-431e-8698-e34512bf2462
+		summarizeBy: none
+		sourceColumn: isdisabled
+
+		annotation SummarizationSetBy = Automatic
+
+	partition System_user = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				  Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+				  #"Navigation 1" = Source{[Schema = "dbo", Item = "systemuser"]}[Data],
+				  #"Choisir des colonnes" = Table.SelectColumns(#"Navigation 1", {"systemuserid", "fullname", "internalemailaddress","domainname","title","businessunitidname","isdisabled"}),
+				  #"Lignes filtrées 1" = Table.SelectRows(#"Choisir des colonnes", each ([isdisabled] = false)),
+				  #"Lignes filtrées" = Table.SelectRows(#"Lignes filtrées 1", each not Text.Contains([fullname], "#"))
+				in
+				  #"Lignes filtrées"
+
+	annotation PBI_ResultType = Table
+

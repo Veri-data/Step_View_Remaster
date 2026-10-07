@@ -1,0 +1,59 @@
+table Project_checklist
+	lineageTag: 9c34ca6b-46a9-475c-97f1-5351dc8147ac
+
+	column 'Liste de contrôle du projet'
+		dataType: string
+		lineageTag: 8cfacb9d-88e1-4c64-b68e-a63ebeb30083
+		summarizeBy: none
+		sourceColumn: ChecklistId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Nom
+		dataType: string
+		lineageTag: 8c549190-52da-4d36-8dc6-51c4dc2afb5f
+		summarizeBy: none
+		sourceColumn: Élément
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_projectchecklistcompleted
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 4e7e11e2-6218-40b0-9cb0-825d0b1185a1
+		summarizeBy: none
+		sourceColumn: Terminé
+
+		annotation SummarizationSetBy = Automatic
+
+	column TacheId
+		dataType: string
+		lineageTag: ef1abd45-79d5-4c47-af41-5f6dec021ab6
+		summarizeBy: none
+		sourceColumn: TacheId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project_checklist = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+				    Checklist = Source{[Schema = "dbo", Item = "msdyn_projectchecklist"]}[Data],
+				    Garder = Table.SelectColumns(Checklist, {"msdyn_projectchecklistid", "msdyn_name",
+				        "msdyn_projectchecklistcompleted", "msdyn_projecttask"}, MissingField.Ignore),
+				
+				    Renommer = Table.RenameColumns(Garder, {
+				        {"msdyn_projectchecklistid",        "ChecklistId"},
+				        {"msdyn_name",                      "Élément"},
+				        {"msdyn_projectchecklistcompleted", "Terminé"},
+				        {"msdyn_projecttask",               "TacheId"}
+				    }),
+				  #"TacheId développé" = Table.ExpandRecordColumn(Renommer, "TacheId", {"msdyn_projecttaskid"}, {"msdyn_projecttaskid"}),
+				  #"Colonnes renommées" = Table.RenameColumns(#"TacheId développé", {{"msdyn_projecttaskid", "TacheId"}})
+				in
+				    #"Colonnes renommées"
+
+	annotation PBI_ResultType = Table
+

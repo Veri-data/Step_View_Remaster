@@ -1,0 +1,57 @@
+table project_task_dependency
+	lineageTag: ba9fc890-5d1b-41c5-be0b-39c25ded1d6a
+
+	column 'Dépendance de la tâche du projet'
+		dataType: string
+		lineageTag: e80a2605-b64c-4d60-bad9-6e58b7418a3d
+		summarizeBy: none
+		sourceColumn: msdyn_projecttaskdependencyid
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_predecessortask
+		dataType: string
+		lineageTag: 5ae85a62-f016-4a60-bb51-dc1213041b65
+		summarizeBy: none
+		sourceColumn: msdyn_predecessortask
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_project
+		dataType: string
+		lineageTag: 1aa4c1b1-94ea-4c3a-b0c1-63b3accd0167
+		summarizeBy: none
+		sourceColumn: msdyn_project
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_successortask
+		dataType: string
+		lineageTag: 18489110-4e6f-4204-9a2b-92fed5f009bf
+		summarizeBy: none
+		sourceColumn: msdyn_successortask
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_projecttaskdependencylinktype
+		dataType: int64
+		formatString: 0
+		lineageTag: f7a51b18-bf86-4919-8006-7eb38924ffcf
+		summarizeBy: sum
+		sourceColumn: msdyn_projecttaskdependencylinktype
+
+		annotation SummarizationSetBy = Automatic
+
+	partition project_task_dependency = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				  Source = CommonDataService.Database(EnvURL),
+				  #"Navigation 1" = Source{[Schema = "dbo", Item = "msdyn_projecttaskdependency"]}[Data],
+				  #"Choisir des colonnes" = Table.SelectColumns(#"Navigation 1", {"msdyn_projecttaskdependencyid", "msdyn_predecessortask", "msdyn_project", "msdyn_successortask", "msdyn_projecttaskdependencylinktype"})
+				in
+				  #"Choisir des colonnes"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,55 @@
+model Model
+	culture: fr-FR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: fr-FR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 00_STAGE
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 01_DIM
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 02_FACT
+
+	annotation PBI_QueryGroupOrder = 2
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["Project","Project_Task","Resource_assignment","Resource","Project_bucket","Project_checklist","Project_label","Project_sprint","project_task_dependency","Project_task_to_label","Project_team","System_user","EnvURL","ModeleURLProjet","fnParis","Indicateur_couleur"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Project
+ref table DateTableTemplate_c3c1c806-c902-47d1-bef2-e1c0b1192c1a
+ref table Project_bucket
+ref table Project_checklist
+ref table Project_sprint
+ref table LocalDateTable_4c49d400-25b4-4dab-bc14-e6123f99b0a2
+ref table LocalDateTable_461e387b-124a-4231-8533-200aad1e840b
+ref table Project_Task
+ref table project_task_dependency
+ref table Project_task_to_label
+ref table Project_team
+ref table Resource
+ref table Resource_assignment
+ref table LocalDateTable_41e546f1-09f2-42c1-9a09-b7c5d9519f2a
+ref table LocalDateTable_9b5e0c1a-7dc4-49e3-8974-cc80603eb0a0
+ref table System_user
+ref table LocalDateTable_de8879d6-4022-4481-abc4-37009509c4b7
+ref table LocalDateTable_0ee01072-1879-4ce9-a746-2dca503b5b75
+ref table LocalDateTable_6f810d11-aaeb-4fe8-b9c6-9ae991cbd288
+ref table LocalDateTable_9e4f4691-a683-479f-880e-1b5f7d7cfdc4
+ref table LocalDateTable_cc3a313a-3696-4bd3-b502-904428d718a8
+ref table LocalDateTable_e3d6869e-f251-4763-910d-d180c8e45353
+ref table LocalDateTable_f57e016c-09e2-429b-919e-ffc8335d14ef
+ref table LocalDateTable_d1f44e3d-b20e-4898-b940-49e91036820c
+ref table LocalDateTable_8fe06cd5-6229-474d-bd91-58d3c41834a0
+
+ref cultureInfo fr-FR
+

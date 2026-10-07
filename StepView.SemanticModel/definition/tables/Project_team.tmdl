@@ -1,0 +1,64 @@
+table Project_team
+	lineageTag: 7ee6b0f9-d292-4f83-85d8-7b662ee6fb52
+
+	column 'Équipe du projet'
+		dataType: string
+		lineageTag: 4430828c-90e8-4209-8ca6-98829c4218bb
+		summarizeBy: none
+		sourceColumn: MembreId
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Nom du poste'
+		dataType: string
+		lineageTag: 1b048df4-321c-426a-a29e-a8132f9d3865
+		summarizeBy: none
+		sourceColumn: Membre
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_bookableresourceid
+		dataType: string
+		lineageTag: fcc6aafa-8bf9-4853-a071-9a7dd0009e43
+		summarizeBy: none
+		sourceColumn: RessourceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_project
+		dataType: string
+		lineageTag: e9166c76-78de-43e2-9bd4-c6d1dcb2484e
+		summarizeBy: none
+		sourceColumn: ProjetId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project_team = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+				    Equipe = Source{[Schema = "dbo", Item = "msdyn_projectteam"]}[Data],
+				    Garder = Table.SelectColumns(Equipe, {"msdyn_projectteamid", "msdyn_name",
+				        "msdyn_bookableresourceid", "msdyn_project", "email"}, MissingField.Ignore),
+				
+				    Renommer = Table.RenameColumns(Garder, {
+				        {"msdyn_projectteamid",      "MembreId"},
+				        {"msdyn_name",               "Membre"},
+				        {"msdyn_bookableresourceid", "RessourceId"},
+				        {"msdyn_project",            "ProjetId"},
+				        {"email",                    "EmailEquipe"}
+				    }),
+				
+				    Cles = Table.TransformColumns(Renommer, {
+				        {"MembreId",    each Text.Lower(Text.From(_)), type text},
+				        {"RessourceId", each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"ProjetId",    each if _ = null then null else Text.Lower(Text.From(_)), type text}
+				    }),
+				  #"Colonnes supprimées" = Table.RemoveColumns(Cles, {"EmailEquipe"})
+				in
+				    #"Colonnes supprimées"
+
+	annotation PBI_ResultType = Table
+

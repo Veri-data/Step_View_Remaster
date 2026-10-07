@@ -1,0 +1,41 @@
+table Project_task_to_label
+	lineageTag: 062472c8-7025-4ad3-b9e6-f9c8740ea167
+
+	column 'Tâche du projet à étiqueter'
+		dataType: string
+		lineageTag: 66f11e0f-13cb-4d6f-b336-462dd09cf441
+		summarizeBy: none
+		sourceColumn: TacheLabel_Id
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_projectlabelid
+		dataType: string
+		lineageTag: 538e43f3-adab-4979-94b1-ed4736b64ea7
+		summarizeBy: none
+		sourceColumn: EtiquetteId
+
+		annotation SummarizationSetBy = Automatic
+
+	column msdyn_projecttaskid
+		dataType: string
+		lineageTag: 9d9bf1b5-b615-464a-8f61-693b4f18e7ac
+		summarizeBy: none
+		sourceColumn: TacheId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project_task_to_label = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+				    Liens = Source{[Schema = "dbo", Item = "msdyn_projecttasktolabel"]}[Data],
+				  #"Choisir des colonnes" = Table.SelectColumns(Liens, {"msdyn_projecttasktolabelid", "msdyn_projectlabelid", "msdyn_projecttaskid"}),
+				  #"Colonnes renommées" = Table.RenameColumns(#"Choisir des colonnes", {{"msdyn_projecttaskid", "TacheId"}, {"msdyn_projectlabelid", "EtiquetteId"}, {"msdyn_projecttasktolabelid", "TacheLabel_Id"}})
+				in
+				    #"Colonnes renommées"
+
+	annotation PBI_ResultType = Table
+

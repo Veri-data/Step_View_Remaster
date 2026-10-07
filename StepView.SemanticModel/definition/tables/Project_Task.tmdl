@@ -1,0 +1,495 @@
+table Project_Task
+	lineageTag: 17ed79fc-2cb0-4e10-8858-6402baae72a4
+
+	column TacheId
+		dataType: string
+		lineageTag: 0b08e18a-9a62-41bc-9c15-a959db0c1b27
+		summarizeBy: none
+		sourceColumn: TacheId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProjetId
+		dataType: string
+		lineageTag: c0e260fd-c444-43b3-a745-ed67ddd90108
+		summarizeBy: none
+		sourceColumn: ProjetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column BucketId
+		dataType: string
+		lineageTag: debcac80-50ef-4da6-999c-5063c0cb1fa8
+		summarizeBy: none
+		sourceColumn: BucketId
+
+		annotation SummarizationSetBy = Automatic
+
+	column TacheParenteId
+		dataType: string
+		lineageTag: 06b6c8c2-086d-4018-b441-1f9835ff1931
+		summarizeBy: none
+		sourceColumn: TacheParenteId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tâche
+		dataType: string
+		lineageTag: 7d6058fe-14ea-4842-a359-9e26e35605c9
+		summarizeBy: none
+		sourceColumn: Tâche
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2c637834-ea0d-478a-bf04-305a2115c43f
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordre
+		dataType: double
+		lineageTag: 58338dc9-1b39-4bfe-9ab5-2b4c682fd212
+		summarizeBy: sum
+		sourceColumn: Ordre
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Niveau
+		dataType: int64
+		formatString: 0
+		lineageTag: 80cb9064-a13b-444e-85e7-8858662b42b0
+		summarizeBy: sum
+		sourceColumn: Niveau
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Durée (j)'
+		dataType: double
+		lineageTag: 09ea8fcf-8690-4233-a007-e8a1f9afb337
+		summarizeBy: sum
+		sourceColumn: Durée (j)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Effort (h)'
+		dataType: double
+		lineageTag: 9a668b76-f1ba-48f7-8ef2-d9ef474a6b0a
+		summarizeBy: sum
+		sourceColumn: Effort (h)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Effort réalisé (h)'
+		dataType: double
+		lineageTag: 427268d8-dae9-49d9-812a-3793a8cd11b9
+		summarizeBy: sum
+		sourceColumn: Effort réalisé (h)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Effort restant (h)'
+		dataType: double
+		lineageTag: 71d0bf62-851c-4bcd-a8d4-2951c74869ed
+		summarizeBy: sum
+		sourceColumn: Effort restant (h)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Critique
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 225d8804-1741-4f08-84f6-67ff9e49ce98
+		summarizeBy: none
+		sourceColumn: Critique
+
+		annotation SummarizationSetBy = Automatic
+
+	column Jalon
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3a855eaf-5c7b-403c-ba19-8b1b92c2bb0a
+		summarizeBy: none
+		sourceColumn: Jalon
+
+		annotation SummarizationSetBy = Automatic
+
+	column Récapitulative
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ad4d20a4-e59c-437b-b6c1-072a81a3e2be
+		summarizeBy: none
+		sourceColumn: Récapitulative
+
+		annotation SummarizationSetBy = Automatic
+
+	column Début
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 70188e41-c115-4edd-a3c3-4949b2e908ee
+		summarizeBy: none
+		sourceColumn: Début
+
+		variation Variation
+			isDefault
+			relationship: 7917741e-2cfa-4608-bd25-32ab5262f0bd
+			defaultHierarchy: LocalDateTable_e3d6869e-f251-4763-910d-d180c8e45353.'Hiérarchie de dates'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Échéance
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d5d54af6-a75e-4fbb-9068-a8c15f9a9922
+		summarizeBy: none
+		sourceColumn: Échéance
+
+		variation Variation
+			isDefault
+			relationship: e5599c3e-67d4-4f6b-948e-55f80311af4a
+			defaultHierarchy: LocalDateTable_f57e016c-09e2-429b-919e-ffc8335d14ef.'Hiérarchie de dates'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Créé le'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 33cabfb4-0e72-47da-b372-257a7181ea68
+		summarizeBy: none
+		sourceColumn: Créé le
+
+		variation Variation
+			isDefault
+			relationship: 3c306462-ca66-4b49-a719-4f5543a4c3bb
+			defaultHierarchy: LocalDateTable_d1f44e3d-b20e-4898-b940-49e91036820c.'Hiérarchie de dates'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Modifié le'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 117e393a-05de-4b76-9ee4-7b728171c991
+		summarizeBy: none
+		sourceColumn: Modifié le
+
+		variation Variation
+			isDefault
+			relationship: 624dafd0-1c5d-4f98-ac26-874126ea985b
+			defaultHierarchy: LocalDateTable_8fe06cd5-6229-474d-bd91-58d3c41834a0.'Hiérarchie de dates'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Avancement
+		dataType: double
+		lineageTag: 8e0e48f3-e0c8-417f-b006-f0efa6d72784
+		summarizeBy: sum
+		sourceColumn: Avancement
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Type
+		dataType: string
+		lineageTag: 7f959ca7-2f7e-4e60-9549-a4e937d3856e
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Priorité
+		dataType: string
+		lineageTag: c38adf35-75d1-4fea-bbb0-d90ccdd64dc1
+		summarizeBy: none
+		sourceColumn: Priorité
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Priorité ordre'
+		dataType: int64
+		formatString: 0
+		lineageTag: 77a93e1f-3f31-45b6-9e70-44c0e5a8d1c2
+		summarizeBy: sum
+		sourceColumn: Priorité ordre
+
+		annotation SummarizationSetBy = Automatic
+
+	column Statut
+		dataType: string
+		lineageTag: efeeb242-36c9-4e1f-9e48-023975cf4a28
+		summarizeBy: none
+		sourceColumn: Statut
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Statut ordre'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e37b8d2-1902-46ee-ac01-5a5541168d15
+		summarizeBy: sum
+		sourceColumn: Statut ordre
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Jours restants'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d116183-3209-490f-9c29-2039c7ec066b
+		summarizeBy: sum
+		sourceColumn: Jours restants
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Jours de retard'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4c8fee87-be25-4dae-a4d6-10ff6c0a34b0
+		summarizeBy: sum
+		sourceColumn: Jours de retard
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Échéance (catégorie)'
+		dataType: string
+		lineageTag: 79040dab-db21-4d3b-8bf9-939b7f9e8758
+		summarizeBy: none
+		sourceColumn: Échéance (catégorie)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Durée calendaire (j)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8fff30c3-0956-4ccd-b86c-b596b49f8866
+		summarizeBy: sum
+		sourceColumn: Durée calendaire (j)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tâche (indentée)'
+		dataType: string
+		lineageTag: f1cfe74c-d7d1-4fdd-996c-9be892ea2881
+		summarizeBy: none
+		sourceColumn: Tâche (indentée)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tâche parente'
+		dataType: string
+		lineageTag: 1a8a15d3-d1a0-4ad9-b28a-98e134c4b7c9
+		summarizeBy: none
+		sourceColumn: Tâche parente
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Est tâche de travail'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2419612f-8820-4911-8234-ee213b696061
+		summarizeBy: none
+		sourceColumn: Est tâche de travail
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lien plan'
+		dataType: string
+		lineageTag: 42443af2-064d-4f60-ba39-f7fbd69c4ec0
+		summarizeBy: none
+		sourceColumn: Lien plan
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lien tâche'
+		dataType: string
+		lineageTag: 78d43e06-d710-4c6d-9932-cae54910e08b
+		summarizeBy: none
+		sourceColumn: Lien tâche
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project_Task = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				    // ============ SOURCE ============
+				    Source = CommonDataService.Database(EnvURL),
+				    Taches = Source{[Schema = "dbo", Item = "msdyn_projecttask"]}[Data],
+				
+				    // ============ 1. GARDER LES COLONNES UTILES ============
+				    Garder = Table.SelectColumns(Taches, {
+				        "msdyn_projecttaskid", "msdyn_project", "msdyn_projectbucket", "msdyn_parenttask",
+				        "msdyn_subject", "msdyn_description",
+				        "msdyn_displaysequence", "msdyn_outlinelevel",
+				        "msdyn_scheduledstart", "msdyn_scheduledend",
+				        "msdyn_duration", "msdyn_effort", "msdyn_effortcompleted", "msdyn_effortremaining",
+				        "msdyn_progress", "msdyn_priority",
+				        "msdyn_iscritical", "msdyn_ismilestone", "msdyn_summary",
+				        "createdon", "modifiedon"
+				    }, MissingField.Ignore),
+				
+				    // ============ 2. RENOMMER ============
+				    Renommer = Table.RenameColumns(Garder, {
+				        {"msdyn_projecttaskid",   "TacheId"},
+				        {"msdyn_project",         "ProjetId"},
+				        {"msdyn_projectbucket",   "BucketId"},
+				        {"msdyn_parenttask",      "TacheParenteId"},
+				        {"msdyn_subject",         "Tâche"},
+				        {"msdyn_description",     "Description"},
+				        {"msdyn_displaysequence", "Ordre"},
+				        {"msdyn_outlinelevel",    "Niveau"},
+				        {"msdyn_scheduledstart",  "DebutUTC"},
+				        {"msdyn_scheduledend",    "FinUTC"},
+				        {"msdyn_duration",        "Durée (j)"},
+				        {"msdyn_effort",          "Effort (h)"},
+				        {"msdyn_effortcompleted", "Effort réalisé (h)"},
+				        {"msdyn_effortremaining", "Effort restant (h)"},
+				        {"msdyn_progress",        "AvancementBrut"},
+				        {"msdyn_priority",        "PrioriteCode"},
+				        {"msdyn_iscritical",      "Critique"},
+				        {"msdyn_ismilestone",     "Jalon"},
+				        {"msdyn_summary",         "Récapitulative"},
+				        {"createdon",             "CreeLeUTC"},
+				        {"modifiedon",            "ModifieLeUTC"}
+				    }, MissingField.Ignore),
+				
+				    // ============ 3. TYPES DES CLÉS (GUID -> texte minuscule) ============
+				    Cles = Table.TransformColumns(Renommer, {
+				        {"TacheId",        each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"ProjetId",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"BucketId",       each if _ = null then null else Text.Lower(Text.From(_)), type text},
+				        {"TacheParenteId", each if _ = null then null else Text.Lower(Text.From(_)), type text}
+				    }),
+				
+				    // ============ 4. NETTOYAGE TEXTE ============
+				    Nettoyer = Table.TransformColumns(Cles, {
+				        {"Tâche",       each if _ = null or Text.Trim(_) = "" then "(Sans titre)" else Text.Clean(Text.Trim(_)), type text},
+				        {"Description", each if _ = null then "" else Text.Clean(Text.Trim(_)), type text}
+				    }),
+				
+				    // ============ 5. NUMÉRIQUES ET BOOLÉENS : null -> valeur par défaut ============
+				    Nombres = Table.ReplaceValue(Nettoyer, null, 0, Replacer.ReplaceValue,
+				        {"AvancementBrut", "Effort (h)", "Effort réalisé (h)", "Effort restant (h)", "Durée (j)", "Ordre"}),
+				    Niveau  = Table.ReplaceValue(Nombres, null, 1, Replacer.ReplaceValue, {"Niveau"}),
+				    Bools   = Table.ReplaceValue(Niveau, null, false, Replacer.ReplaceValue, {"Critique", "Jalon", "Récapitulative"}),
+				    Types   = Table.TransformColumnTypes(Bools, {
+				        {"Ordre", type number}, {"Niveau", Int64.Type},
+				        {"Critique", type logical}, {"Jalon", type logical}, {"Récapitulative", type logical}
+				    }),
+				
+				    // ============ 6. DATES UTC -> PARIS ============
+				    Debut   = Table.AddColumn(Types,  "Début",      each let d = fnParis([DebutUTC])  in if d = null then null else DateTime.Date(d), type date),
+				    Fin     = Table.AddColumn(Debut,  "Échéance",   each let d = fnParis([FinUTC])    in if d = null then null else DateTime.Date(d), type date),
+				    Cree    = Table.AddColumn(Fin,    "Créé le",    each let d = fnParis([CreeLeUTC]) in if d = null then null else DateTime.Date(d), type date),
+				    Modifie = Table.AddColumn(Cree,   "Modifié le", each fnParis([ModifieLeUTC]), type datetime),
+				
+				    // ============ 7. AVANCEMENT NORMALISÉ (0 à 1) ============
+				    MaxAv      = List.Max(Modifie[AvancementBrut]),
+				    Avancement = Table.AddColumn(Modifie, "Avancement", each
+				        let v = if MaxAv > 1 then [AvancementBrut] / 100 else [AvancementBrut]
+				        in Number.Round(List.Min({List.Max({v, 0}), 1}), 4), Percentage.Type),
+				
+				    Aujourdhui = DateTime.Date(fnParis(DateTimeZone.UtcNow())),
+				
+				    // ============ 8. TYPE DE TÂCHE ============
+				    TypeTache = Table.AddColumn(Avancement, "Type", each
+				        if [Jalon] then "Jalon"
+				        else if [Récapitulative] then "Récapitulative"
+				        else "Tâche", type text),
+				
+				    // ============ 9. PRIORITÉ EN CLAIR ============
+				    // Échelle Planner : 0-1 Urgente | 2-4 Importante | 5-7 Moyenne | 8-10 Faible
+				    Priorite = Table.AddColumn(TypeTache, "Priorité", each
+				        let p = [PrioriteCode] in
+				        if p = null then "Moyenne"
+				        else if p <= 1 then "Urgente"
+				        else if p <= 4 then "Importante"
+				        else if p <= 7 then "Moyenne"
+				        else "Faible", type text),
+				
+				    PrioriteOrdre = Table.AddColumn(Priorite, "Priorité ordre", each
+				        Record.FieldOrDefault([Urgente=1, Importante=2, Moyenne=3, Faible=4], [Priorité], 9), Int64.Type),
+				
+				    // ============ 10. STATUT ============
+				    Statut = Table.AddColumn(PrioriteOrdre, "Statut", each
+				        if [Avancement] >= 1                              then "Terminée"
+				        else if [Échéance] = null                         then "Non planifiée"
+				        else if [Échéance] < Aujourdhui                   then "En retard"
+				        else if [Avancement] = 0 and ([Début] = null or [Début] > Aujourdhui) then "Non démarrée"
+				        else                                                   "En cours", type text),
+				
+				    StatutOrdre = Table.AddColumn(Statut, "Statut ordre", each
+				        Record.FieldOrDefault([#"Non démarrée"=1, #"En cours"=2, #"En retard"=3, #"Terminée"=4, #"Non planifiée"=5], [Statut], 9),
+				        Int64.Type),
+				
+				    // ============ 11. INDICATEURS DE DÉLAI ============
+				    JoursRestants = Table.AddColumn(StatutOrdre, "Jours restants", each
+				        if [Échéance] = null or [Statut] = "Terminée" then null
+				        else Duration.Days([Échéance] - Aujourdhui), Int64.Type),
+				
+				    JoursRetard = Table.AddColumn(JoursRestants, "Jours de retard", each
+				        if [Statut] = "En retard" then Duration.Days(Aujourdhui - [Échéance]) else 0, Int64.Type),
+				
+				    Echeance = Table.AddColumn(JoursRetard, "Échéance (catégorie)", each
+				        if [Statut] = "Terminée"          then "Terminée"
+				        else if [Échéance] = null         then "Sans date"
+				        else if [Jours restants] < 0      then "Dépassée"
+				        else if [Jours restants] = 0      then "Aujourd'hui"
+				        else if [Jours restants] <= 7     then "Cette semaine"
+				        else if [Jours restants] <= 30    then "Ce mois-ci"
+				        else "Plus tard", type text),
+				
+				    DureeCal = Table.AddColumn(Echeance, "Durée calendaire (j)", each
+				        if [Début] = null or [Échéance] = null then null
+				        else Duration.Days([Échéance] - [Début]) + 1, Int64.Type),
+				
+				    // ============ 12. AFFICHAGE HIÉRARCHIQUE (WBS) ============
+				    Indente = Table.AddColumn(DureeCal, "Tâche (indentée)", each
+				        Text.Repeat("    ", List.Max({[Niveau] - 1, 0}))
+				        & (if [Jalon] then "◆ " else if [Récapitulative] then "▸ " else "")
+				        & [Tâche], type text),
+				
+				    // Nom de la tâche parente (recherche dans la table elle-même)
+				    Parents    = Table.Buffer(Table.SelectColumns(Indente, {"TacheId", "Tâche"})),
+				    DictParent = Record.FromList(Parents[Tâche], Parents[TacheId]),
+				    NomParent  = Table.AddColumn(Indente, "Tâche parente", each
+				        if [TacheParenteId] = null then "(Racine)"
+				        else Record.FieldOrDefault(DictParent, [TacheParenteId], "(Inconnue)"), type text),
+				
+				    // Tâche feuille = vraie tâche de travail (à utiliser pour compter les tâches)
+				    Feuille = Table.AddColumn(NomParent, "Est tâche de travail", each not [Récapitulative], type logical),
+				
+				    // ============ 13. LIENS ============
+				    LienPlan = Table.AddColumn(Feuille, "Lien plan", each
+				        if [ProjetId] = null then null else Text.Replace(ModeleURLProjet, "{id}", [ProjetId]), type text),
+				
+				    LienTache = Table.AddColumn(LienPlan, "Lien tâche", each
+				        EnvURL & "/main.aspx?pagetype=entityrecord&etn=msdyn_projecttask&id=" & [TacheId], type text),
+				
+				    // ============ 14. SUPPRIMER LES COLONNES TECHNIQUES ============
+				    Final = Table.RemoveColumns(LienTache,
+				        {"DebutUTC", "FinUTC", "CreeLeUTC", "ModifieLeUTC", "AvancementBrut", "PrioriteCode"},
+				        MissingField.Ignore)
+				in
+				    Final
+
+	annotation PBI_ResultType = Table
+

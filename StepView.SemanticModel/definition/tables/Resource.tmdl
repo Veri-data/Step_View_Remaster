@@ -1,0 +1,95 @@
+table Resource
+	lineageTag: def06d7e-810e-4db4-953d-5296f1b0550f
+
+	column 'Ressource pouvant être réservée'
+		dataType: string
+		lineageTag: a2ba0529-1c5c-45c1-b629-78d9d21a8f1d
+		summarizeBy: none
+		sourceColumn: RessourceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Nom
+		dataType: string
+		lineageTag: ae451a72-8d5c-4957-ab4b-040da3101b7c
+		summarizeBy: none
+		sourceColumn: Ressource
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type de ressource'
+		dataType: string
+		lineageTag: fb9aedf2-5ea4-4c3d-a181-52d8194437cc
+		summarizeBy: none
+		sourceColumn: Type ressource
+
+		annotation SummarizationSetBy = Automatic
+
+	column Email
+		dataType: string
+		lineageTag: 34527a2d-fa6f-48ed-b5eb-70cc80c4d670
+		summarizeBy: none
+		sourceColumn: Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column Actif
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: f2f7efd8-def5-4dfe-a6ed-f8f0d4f46405
+		summarizeBy: none
+		sourceColumn: Actif
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Resource = m
+		mode: import
+		queryGroup: 00_STAGE
+		source =
+				let
+				    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+				    Ressources = Source{[Schema = "dbo", Item = "bookableresource"]}[Data],
+				    Garder = Table.SelectColumns(Ressources,
+				        {"bookableresourceid", "name", "resourcetypename", "userid"}, MissingField.Ignore),
+				
+				    // ============ UTILISATEURS (pour l'email / UPN) ============
+				    Utilisateurs = Table.Buffer(
+				        Table.SelectColumns(
+				            Source{[Schema = "dbo", Item = "systemuser"]}[Data],
+				            {"systemuserid", "domainname", "internalemailaddress", "isdisabled"},
+				            MissingField.Ignore)),
+				
+				    Fusion = Table.NestedJoin(Garder, {"userid"}, Utilisateurs, {"systemuserid"}, "U", JoinKind.LeftOuter),
+				    Developper = Table.ExpandTableColumn(Fusion, "U",
+				        {"domainname", "internalemailaddress", "isdisabled"},
+				        {"UPN", "MailInterne", "Desactive"}),
+				
+				    // ============ RENOMMER ============
+				    Renommer = Table.RenameColumns(Developper, {
+				        {"bookableresourceid", "RessourceId"},
+				        {"name",               "Ressource"},
+				        {"resourcetypename",   "Type ressource"}
+				    }),
+				
+				    // ============ COLONNES UTILES ============
+				    // UPN en priorité (= identifiant de connexion, ce que renvoie USERPRINCIPALNAME())
+				    Email = Table.AddColumn(Renommer, "Email", each
+				        let e = if [UPN] <> null and Text.Contains([UPN], "@") then [UPN] else [MailInterne]
+				        in if e = null then null else Text.Lower(Text.Trim(e)), type text),
+				
+				    Actif = Table.AddColumn(Email, "Actif", each [Desactive] <> true, type logical),
+				
+				    // ============ NETTOYAGE ============
+				    Nettoyer = Table.TransformColumns(Actif, {
+				        {"RessourceId",    each Text.Lower(Text.From(_)), type text},
+				        {"Ressource",      each if _ = null or Text.Trim(_) = "" then "(Sans nom)" else Text.Trim(_), type text},
+				        {"Type ressource", each if _ = null then "Inconnu" else _, type text}
+				    }),
+				
+				    Final = Table.RemoveColumns(Nettoyer, {"userid", "UPN", "MailInterne", "Desactive"}),
+				    SansDoublon = Table.Distinct(Final, {"RessourceId"})
+				in
+				    SansDoublon
+
+	annotation PBI_ResultType = Table
+

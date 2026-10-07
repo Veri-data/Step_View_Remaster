@@ -1,0 +1,71 @@
+relationship b9d2d9e1-08ba-4ad7-90ab-3d811daab8dd
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_sprint.'Date de fin'
+	toColumn: LocalDateTable_4c49d400-25b4-4dab-bc14-e6123f99b0a2.Date
+
+relationship 33e0cdc5-f6ed-45fe-a370-1757168c6b6c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_sprint.'Date de début'
+	toColumn: LocalDateTable_461e387b-124a-4231-8533-200aad1e840b.Date
+
+relationship 7cf6c28c-b8ed-4afb-bc4a-1f6856ae77e6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Resource_assignment.Terminer
+	toColumn: LocalDateTable_41e546f1-09f2-42c1-9a09-b7c5d9519f2a.Date
+
+relationship 0fd4a8f3-f6df-4fc7-be26-5090cfdefaa2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Resource_assignment.Début
+	toColumn: LocalDateTable_9b5e0c1a-7dc4-49e3-8974-cc80603eb0a0.Date
+
+relationship c79707af-ff3a-4f02-9592-34577f7b9464
+	fromColumn: Resource_assignment.msdyn_bookableresourceid
+	toColumn: Resource.'Ressource pouvant être réservée'
+
+	annotation PBI_IsFromSource = FS
+
+relationship 4aea62d8-c8c7-40ad-978b-adf381b2e4f1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project.Début
+	toColumn: LocalDateTable_de8879d6-4022-4481-abc4-37009509c4b7.Date
+
+relationship e027b547-eb15-4ce7-9cbc-00fb89fd77e2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project.Fin
+	toColumn: LocalDateTable_0ee01072-1879-4ce9-a746-2dca503b5b75.Date
+
+relationship 4d983be0-0941-41fc-93d6-63fca835e08e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project.'Créé le'
+	toColumn: LocalDateTable_6f810d11-aaeb-4fe8-b9c6-9ae991cbd288.Date
+
+relationship 0c80e2a5-2a54-4257-bc40-97aeeedc7f27
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project.'Modifié le'
+	toColumn: LocalDateTable_9e4f4691-a683-479f-880e-1b5f7d7cfdc4.Date
+
+relationship 0fdf5aeb-2250-4c3b-aa5c-bd708aeb92a3
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project.'Mois fin'
+	toColumn: LocalDateTable_cc3a313a-3696-4bd3-b502-904428d718a8.Date
+
+relationship 7917741e-2cfa-4608-bd25-32ab5262f0bd
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_Task.Début
+	toColumn: LocalDateTable_e3d6869e-f251-4763-910d-d180c8e45353.Date
+
+relationship e5599c3e-67d4-4f6b-948e-55f80311af4a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_Task.Échéance
+	toColumn: LocalDateTable_f57e016c-09e2-429b-919e-ffc8335d14ef.Date
+
+relationship 3c306462-ca66-4b49-a719-4f5543a4c3bb
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_Task.'Créé le'
+	toColumn: LocalDateTable_d1f44e3d-b20e-4898-b940-49e91036820c.Date
+
+relationship 624dafd0-1c5d-4f98-ac26-874126ea985b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Project_Task.'Modifié le'
+	toColumn: LocalDateTable_8fe06cd5-6229-474d-bd91-58d3c41834a0.Date
+

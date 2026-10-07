@@ -1,0 +1,58 @@
+expression EnvURL = "org00ef564b.crm4.dynamics.com" meta [IsParameterQuery = true, IsParameterQueryRequired = true, Type = type text]
+	lineageTag: f8340bab-91e5-473f-88ee-e06b6b05e5f1
+
+	annotation PBI_ResultType = Text
+
+expression ModeleURLProjet = "https://planner.cloud.microsoft/ui/web/premiumplan/{id}/org/636764cf-ca2d-44ce-8cbd-277d33f6b942?tid=7167574c-6592-4341-a975-ecba7aed3334" meta [IsParameterQuery = true, IsParameterQueryRequired = false, Type = type text]
+	lineageTag: b42845e6-80a2-4c8a-9add-b391f6201c90
+
+	annotation PBI_ResultType = Text
+
+expression fnParis =
+		let
+		    Source = (dt as any) as nullable datetime =>
+		    if dt = null then null
+		    else
+		        let
+		            utc = if Value.Is(dt, type datetimezone)
+		                  then DateTimeZone.RemoveZone(DateTimeZone.ToUtc(dt))
+		                  else DateTime.From(dt),
+		            y = Date.Year(utc),
+		            debutEte = DateTime.From(Date.StartOfWeek(#date(y, 3, 31), Day.Sunday))  + #duration(0,1,0,0),
+		            finEte   = DateTime.From(Date.StartOfWeek(#date(y, 10, 31), Day.Sunday)) + #duration(0,1,0,0),
+		            decalage = if utc >= debutEte and utc < finEte then 2 else 1
+		        in
+		            utc + #duration(0, decalage, 0, 0)
+		in
+		    Source
+	lineageTag: 2e2e89e1-0837-4f8d-bfa3-e4b1fc53fd7c
+
+	annotation PBI_ResultType = Function
+
+expression Indicateur_couleur =
+		let
+		  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("ZZQ7b9swFEb/SmGuGXj5FEfxoS4parRdCiOD2giOEcVuhTpB++tLXlo06Wj6IPDgPnSo3W6zPRyfN3cbMIxLGp+Y3Wk+LSmQwXo/YOod8zrERDcPd7vNl+mxgmCFUiDBOO18SlpSCy4dROj7NM+nt4pjK8ewmAzepRJEeamxE4bcx2WajhXGVywF4m2wTqfEO8WpiIkjZufzVFFipQRSNOihS4lSafvUuEBqe15+zTUnV04i1zkXsJqgYFUaTuZqy+n4r+bUyikcDrxxDjepBVATk0Lu/vBSU3qlsEaQA/M4pWCKQXqnkep/n8eK6lYKJ3Is6NwjBaVVSt1lkePfijIrZXKtIALWUiCDTL0apL4e5tdpuXJQHMFEQh9CGLBJK7lM4wJdd/JWfTi4epJFYR6cRdAzk0XJprhlPP6YlqXqFoosmIiTdACsOuCTTmZdPkd4X+0Uii+Qhem5RWUrMhuzncafTxVYlMEUj3cOtSSUXq4KZGk+jcthf5qrOwFFG0xxST2/ZeVFgP3Tnw83jkOxBxMB3gMNLZ798ePy/I4uFkHWwKqe2nbi7NG3aZwrrngEl6thteNt1a5qur1hUHzCFBndedFWNdeeW5gVqdhlS9wo1cAsS3U/vk7Hx1pIVrzCRDQoGtpxWfZqO59fKu76/0GldPzpCN9yrPlG9fVhRStMRPda6nZcxutP1MBFLUyEGwHiZtyo1sN/", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Color Name" = _t, msdyn_colorindex = _t, #"Color Index" = _t, #"Background Color Hex Code" = _t, #"Text Color Hex Code" = _t, Sort = _t]),
+		  #"Type de colonne changé" = Table.TransformColumnTypes(Source, {{"Color Name", type text}, {"msdyn_colorindex", Int64.Type}, {"Color Index", type text}, {"Background Color Hex Code", type text}, {"Text Color Hex Code", type text}, {"Sort", Int64.Type}}, "fr"),
+		  #"Valeur remplacée" = Table.ReplaceValue(#"Type de colonne changé", "Color", "Couleur ", Replacer.ReplaceText, {"Color Index"}),
+		  #"Texte tronqué" = Table.TransformColumns(#"Valeur remplacée", {{"Color Index", each Text.Trim(_), type nullable text}}),
+		  #"Colonnes renommées" = Table.RenameColumns(#"Texte tronqué", {{"Color Index", "Couleur"}})
+		in
+		  #"Colonnes renommées"
+	lineageTag: 845cc6c9-9814-41fd-8b01-a72b40a642ce
+	queryGroup: 00_STAGE
+
+expression Project_label =
+		let
+		    Source = CommonDataService.Database(EnvURL, [CreateNavigationProperties = null]),
+		    Labels = Source{[Schema = "dbo", Item = "msdyn_projectlabel"]}[Data],
+		    Garder = Table.SelectColumns(Labels, {"msdyn_projectlabelid", "msdyn_projectlabeltext",
+		        "msdyn_colorindexname", "msdyn_projectid"}, MissingField.Ignore),
+		  #"Valeur remplacée" = Table.ReplaceValue(Garder, "Couleur 0", "Couleur 0", Replacer.ReplaceValue, {"msdyn_colorindexname"}),
+		  #"Texte nettoyé" = Table.TransformColumns(#"Valeur remplacée", {{"msdyn_colorindexname", each Text.Clean(_), type nullable text}})
+		in
+		    #"Texte nettoyé"
+	lineageTag: eb340191-0b44-4f46-a5d1-64e6e8d706de
+	queryGroup: 00_STAGE
+
+	annotation PBI_ResultType = Table
+

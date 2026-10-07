@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "StepView"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d58e5b41-9617-450d-944a-fee68f9c067a"
+  }
+}
