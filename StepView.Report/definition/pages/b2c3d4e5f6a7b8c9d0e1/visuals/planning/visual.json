@@ -1,0 +1,403 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "planning",
+  "position": {
+    "x": 40,
+    "y": 234,
+    "z": 1040,
+    "height": 806,
+    "width": 1384,
+    "tabOrder": 1040
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Projet"
+                }
+              },
+              "queryRef": "dim_projet.Projet",
+              "nativeQueryRef": "Projet"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Chef de projet"
+                }
+              },
+              "queryRef": "dim_projet.Chef de projet",
+              "nativeQueryRef": "Chef de projet"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Début"
+                }
+              },
+              "queryRef": "dim_projet.Début",
+              "nativeQueryRef": "Début"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Fin"
+                }
+              },
+              "queryRef": "dim_projet.Fin",
+              "nativeQueryRef": "Fin"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Statut"
+                }
+              },
+              "queryRef": "dim_projet.Statut",
+              "nativeQueryRef": "Statut"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_projet"
+                    }
+                  },
+                  "Property": "Jours de retard"
+                }
+              },
+              "queryRef": "dim_projet.Jours de retard",
+              "nativeQueryRef": "Jours de retard"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mesures"
+                    }
+                  },
+                  "Property": "Avancement projet"
+                }
+              },
+              "queryRef": "Mesures.Avancement projet",
+              "nativeQueryRef": "Avancement projet"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mesures"
+                    }
+                  },
+                  "Property": "Jalons (liste)"
+                }
+              },
+              "queryRef": "Mesures.Jalons (liste)",
+              "nativeQueryRef": "Jalons (liste)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mesures"
+                    }
+                  },
+                  "Property": "Date de référence"
+                }
+              },
+              "queryRef": "Mesures.Date de référence",
+              "nativeQueryRef": "Date de référence"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n  \"data\": {\n    \"name\": \"dataset\"\n  },\n  \"transform\": [\n    {\n      \"calculate\": \"toDate(datum[''Début''])\",\n      \"as\": \"deb\"\n    },\n    {\n      \"calculate\": \"toDate(datum[''Fin''])\",\n      \"as\": \"fin\"\n    },\n    {\n      \"calculate\": \"toDate(datum[''Date de référence''])\",\n      \"as\": \"today\"\n    },\n    {\n      \"calculate\": \"isValid(datum[''Avancement projet'']) ? max(0, min(1, datum[''Avancement projet''])) : 0\",\n      \"as\": \"pct\"\n    },\n    {\n      \"calculate\": \"datum[''Statut''] == ''En retard'' && +datum.today > +datum.fin\",\n      \"as\": \"late\"\n    },\n    {\n      \"calculate\": \"+datum.fin > +datum.deb ? datum.fin : toDate(+datum.deb + 86400000)\",\n      \"as\": \"finVis\"\n    },\n    {\n      \"calculate\": \"toDate(+datum.deb + datum.pct * (+datum.finVis - +datum.deb))\",\n      \"as\": \"achEnd\"\n    },\n    {\n      \"calculate\": \"datum.late ? datum.today : datum.finVis\",\n      \"as\": \"barEnd\"\n    },\n    {\n      \"calculate\": \"format(datum.pct * 100, ''.0f'') + '' %''\",\n      \"as\": \"pctTxt\"\n    },\n    {\n      \"calculate\": \"datum[''Jours de retard''] > 0 ? ''+'' + datum[''Jours de retard''] + '' j'' : ''—''\",\n      \"as\": \"retardTxt\"\n    },\n    {\n      \"joinaggregate\": [\n        {\n          \"op\": \"min\",\n          \"field\": \"deb\",\n          \"as\": \"chefStart\"\n        },\n        {\n          \"op\": \"max\",\n          \"field\": \"barEnd\",\n          \"as\": \"chefEnd\"\n        },\n        {\n          \"op\": \"count\",\n          \"as\": \"nChef\"\n        }\n      ],\n      \"groupby\": [\n        \"Chef de projet\"\n      ]\n    },\n    {\n      \"window\": [\n        {\n          \"op\": \"row_number\",\n          \"as\": \"rn\"\n        }\n      ],\n      \"sort\": [\n        {\n          \"field\": \"chefStart\"\n        },\n        {\n          \"field\": \"Chef de projet\"\n        },\n        {\n          \"field\": \"deb\"\n        },\n        {\n          \"field\": \"Projet\"\n        }\n      ]\n    },\n    {\n      \"window\": [\n        {\n          \"op\": \"dense_rank\",\n          \"as\": \"c\"\n        }\n      ],\n      \"sort\": [\n        {\n          \"field\": \"chefStart\"\n        },\n        {\n          \"field\": \"Chef de projet\"\n        }\n      ]\n    },\n    {\n      \"joinaggregate\": [\n        {\n          \"op\": \"min\",\n          \"field\": \"rn\",\n          \"as\": \"firstRn\"\n        }\n      ],\n      \"groupby\": [\n        \"Chef de projet\"\n      ]\n    },\n    {\n      \"joinaggregate\": [\n        {\n          \"op\": \"count\",\n          \"as\": \"nProj\"\n        },\n        {\n          \"op\": \"max\",\n          \"field\": \"c\",\n          \"as\": \"nChefs\"\n        },\n        {\n          \"op\": \"min\",\n          \"field\": \"deb\",\n          \"as\": \"minDeb\"\n        },\n        {\n          \"op\": \"max\",\n          \"field\": \"barEnd\",\n          \"as\": \"maxEnd\"\n        }\n      ]\n    },\n    {\n      \"calculate\": \"min(1, 690 / (40 * datum.nChefs + 45 * datum.nProj))\",\n      \"as\": \"k\"\n    },\n    {\n      \"calculate\": \"101 + datum.k * (40 * datum.c + 45 * (datum.rn - 1))\",\n      \"as\": \"yP\"\n    },\n    {\n      \"calculate\": \"101 + datum.k * (40 * (datum.c - 1) + 45 * (datum.firstRn - 1))\",\n      \"as\": \"yC\"\n    },\n    {\n      \"calculate\": \"min(11, 11 * datum.k)\",\n      \"as\": \"hb\"\n    },\n    {\n      \"calculate\": \"datum.yP - datum.hb\",\n      \"as\": \"yP1\"\n    },\n    {\n      \"calculate\": \"datum.yP + datum.hb\",\n      \"as\": \"yP2\"\n    },\n    {\n      \"calculate\": \"datum.yP - 7 * datum.k\",\n      \"as\": \"yNom\"\n    },\n    {\n      \"calculate\": \"datum.yP + 9 * datum.k\",\n      \"as\": \"yDates\"\n    },\n    {\n      \"calculate\": \"datum.yC - 9\",\n      \"as\": \"yC1\"\n    },\n    {\n      \"calculate\": \"datum.yC + 9\",\n      \"as\": \"yC2\"\n    },\n    {\n      \"calculate\": \"datum.yP - 9\",\n      \"as\": \"yL1\"\n    },\n    {\n      \"calculate\": \"datum.yP + 9\",\n      \"as\": \"yL2\"\n    },\n    {\n      \"calculate\": \"{''En retard'': ''#EF5B3A'', ''En cours'': ''#3F86C8'', ''Pas commencé'': ''#B4BFB9'', ''Terminé'': ''#00734E''}[datum[''Statut'']] || ''#B4BFB9''\",\n      \"as\": \"cFonce\"\n    },\n    {\n      \"calculate\": \"{''En retard'': ''#FBDCD3'', ''En cours'': ''#DCE9F6'', ''Pas commencé'': ''#EEF1EF'', ''Terminé'': ''#E1F2E8''}[datum[''Statut'']] || ''#EEF1EF''\",\n      \"as\": \"cClair\"\n    }\n  ],\n  \"layer\": [\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.rn == 1\"\n        },\n        {\n          \"calculate\": \"max(+datum.maxEnd, +datum.today)\",\n          \"as\": \"domEnd\"\n        },\n        {\n          \"calculate\": \"(year(datum.domEnd) - year(datum.minDeb)) * 12 + month(datum.domEnd) - month(datum.minDeb)\",\n          \"as\": \"nM\"\n        },\n        {\n          \"calculate\": \"sequence(0, datum.nM + 1)\",\n          \"as\": \"seq\"\n        },\n        {\n          \"flatten\": [\n            \"seq\"\n          ],\n          \"as\": [\n            \"i\"\n          ]\n        },\n        {\n          \"calculate\": \"datetime(year(datum.minDeb), month(datum.minDeb) + datum.i, 1)\",\n          \"as\": \"mStart\"\n        },\n        {\n          \"calculate\": \"datetime(year(datum.minDeb), month(datum.minDeb) + datum.i + 1, 1)\",\n          \"as\": \"mEnd\"\n        },\n        {\n          \"calculate\": \"datetime(year(datum.minDeb), month(datum.minDeb) + datum.i, 15)\",\n          \"as\": \"mMid\"\n        },\n        {\n          \"calculate\": \"month(datum.mStart) % 3 == 0\",\n          \"as\": \"isQ\"\n        },\n        {\n          \"calculate\": \"datetime(year(datum.minDeb), month(datum.minDeb) + datum.nM + 1, 1)\",\n          \"as\": \"domFin\"\n        },\n        {\n          \"calculate\": \"datetime(year(datum.mStart), floor(month(datum.mStart) / 3) * 3 + 3, 1)\",\n          \"as\": \"qEnd\"\n        },\n        {\n          \"calculate\": \"toDate((+datum.mStart + min(+datum.qEnd, +datum.domFin)) / 2)\",\n          \"as\": \"qMid\"\n        },\n        {\n          \"calculate\": \"datum.isQ || datum.i == 0\",\n          \"as\": \"qLabelShow\"\n        },\n        {\n          \"calculate\": \"''T'' + (floor(month(datum.mStart) / 3) + 1) + '' '' + year(datum.mStart)\",\n          \"as\": \"qLabel\"\n        },\n        {\n          \"calculate\": \"[''janv.'',''févr.'',''mars'',''avr.'',''mai'',''juin'',''juil.'',''août'',''sept.'',''oct.'',''nov.'',''déc.''][month(datum.mStart)]\",\n          \"as\": \"mLabel\"\n        }\n      ],\n      \"layer\": [\n        {\n          \"mark\": {\n            \"type\": \"rect\",\n            \"fill\": \"#F6F9F7\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"mStart\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"x2\": {\n              \"field\": \"mEnd\"\n            },\n            \"y\": {\n              \"value\": 33\n            },\n            \"y2\": {\n              \"value\": 77\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"rule\",\n            \"strokeWidth\": 1\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"mStart\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"value\": 55\n            },\n            \"y2\": {\n              \"value\": {\n                \"expr\": \"height\"\n              }\n            },\n            \"color\": {\n              \"condition\": {\n                \"test\": \"datum.isQ\",\n                \"value\": \"#D5DDD8\"\n              },\n              \"value\": \"#EDF1EE\"\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 11,\n            \"fill\": \"#66736C\",\n            \"align\": \"center\",\n            \"baseline\": \"alphabetic\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"mMid\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"value\": 70\n            },\n            \"text\": {\n              \"field\": \"mLabel\"\n            }\n          }\n        },\n        {\n          \"transform\": [\n            {\n              \"filter\": \"datum.qLabelShow\"\n            }\n          ],\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 11.5,\n            \"fontWeight\": 700,\n            \"fill\": \"#16261F\",\n            \"align\": \"center\",\n            \"baseline\": \"alphabetic\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"qMid\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"value\": 48\n            },\n            \"text\": {\n              \"field\": \"qLabel\"\n            }\n          }\n        }\n      ]\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.rn == 1\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"text\",\n        \"fontSize\": 11,\n        \"fontWeight\": 700,\n        \"fill\": \"#4E5D55\",\n        \"align\": \"left\",\n        \"baseline\": \"alphabetic\",\n        \"text\": \"Chef de projet › Projet\"\n      },\n      \"encoding\": {\n        \"x\": {\n          \"value\": 8\n        },\n        \"y\": {\n          \"value\": 71\n        }\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.rn == datum.firstRn\"\n        },\n        {\n          \"calculate\": \"indexof(datum[''Chef de projet''], '' '')\",\n          \"as\": \"sp\"\n        },\n        {\n          \"calculate\": \"upper(substring(datum[''Chef de projet''], 0, 1) + (datum.sp > 0 ? substring(datum[''Chef de projet''], datum.sp + 1, datum.sp + 2) : ''''))\",\n          \"as\": \"ini\"\n        },\n        {\n          \"calculate\": \"datum.nChef + (datum.nChef > 1 ? '' projets'' : '' projet'')\",\n          \"as\": \"nTxt\"\n        },\n        {\n          \"calculate\": \"datum.yC - 22 * datum.k\",\n          \"as\": \"ySep\"\n        }\n      ],\n      \"layer\": [\n        {\n          \"transform\": [\n            {\n              \"filter\": \"datum.c > 1\"\n            }\n          ],\n          \"mark\": {\n            \"type\": \"rule\",\n            \"stroke\": \"#EEF2EF\",\n            \"strokeWidth\": 1\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 0\n            },\n            \"x2\": {\n              \"value\": {\n                \"expr\": \"width\"\n              }\n            },\n            \"y\": {\n              \"field\": \"ySep\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"rule\",\n            \"stroke\": \"#C9D2CD\",\n            \"strokeWidth\": 5,\n            \"strokeCap\": \"round\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"chefStart\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"x2\": {\n              \"field\": \"chefEnd\"\n            },\n            \"y\": {\n              \"field\": \"yC\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"circle\",\n            \"fill\": \"#00734E\",\n            \"opacity\": 1,\n            \"size\": 560\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 22\n            },\n            \"y\": {\n              \"field\": \"yC\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 10,\n            \"fontWeight\": 700,\n            \"fill\": \"#FFFFFF\",\n            \"align\": \"center\",\n            \"baseline\": \"middle\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 22\n            },\n            \"y\": {\n              \"field\": \"yC\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"text\": {\n              \"field\": \"ini\"\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 13,\n            \"fontWeight\": 700,\n            \"fill\": \"#16261F\",\n            \"align\": \"left\",\n            \"baseline\": \"middle\",\n            \"limit\": 176\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 44\n            },\n            \"y\": {\n              \"field\": \"yC\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"text\": {\n              \"field\": \"Chef de projet\"\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"rect\",\n            \"fill\": \"#EEF1EF\",\n            \"cornerRadius\": 9\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 228\n            },\n            \"x2\": {\n              \"value\": 292\n            },\n            \"y\": {\n              \"field\": \"yC1\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"y2\": {\n              \"field\": \"yC2\"\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 11,\n            \"fill\": \"#4E5D55\",\n            \"align\": \"center\",\n            \"baseline\": \"middle\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"value\": 260\n            },\n            \"y\": {\n              \"field\": \"yC\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"text\": {\n              \"field\": \"nTxt\"\n            }\n          }\n        }\n      ]\n    },\n    {\n      \"mark\": {\n        \"type\": \"text\",\n        \"fontSize\": 13,\n        \"fill\": \"#16261F\",\n        \"align\": \"left\",\n        \"baseline\": \"alphabetic\",\n        \"limit\": 268\n      },\n      \"encoding\": {\n        \"x\": {\n          \"value\": 44\n        },\n        \"y\": {\n          \"field\": \"yNom\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"text\": {\n          \"field\": \"Projet\"\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Chef de projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Statut\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"deb\",\n            \"type\": \"temporal\",\n            \"title\": \"Début\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"fin\",\n            \"type\": \"temporal\",\n            \"title\": \"Fin prévue\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"pctTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"% achevé\"\n          },\n          {\n            \"field\": \"retardTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"Retard\"\n          }\n        ]\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"calculate\": \"timeFormat(datum.deb, ''%d/%m/%Y'') + '' → '' + timeFormat(datum.fin, ''%d/%m/%Y'')\",\n          \"as\": \"datesTxt\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"text\",\n        \"fontSize\": 11,\n        \"fill\": \"#66736C\",\n        \"align\": \"left\",\n        \"baseline\": \"alphabetic\"\n      },\n      \"encoding\": {\n        \"x\": {\n          \"value\": 44\n        },\n        \"y\": {\n          \"field\": \"yDates\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"text\": {\n          \"field\": \"datesTxt\"\n        }\n      }\n    },\n    {\n      \"mark\": {\n        \"type\": \"rect\",\n        \"cornerRadius\": 11\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"deb\",\n          \"type\": \"temporal\",\n          \"scale\": {\n            \"range\": [\n              320,\n              {\n                \"expr\": \"width - 96\"\n              }\n            ]\n          },\n          \"axis\": null\n        },\n        \"x2\": {\n          \"field\": \"finVis\"\n        },\n        \"y\": {\n          \"field\": \"yP1\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"y2\": {\n          \"field\": \"yP2\"\n        },\n        \"fill\": {\n          \"field\": \"cClair\",\n          \"type\": \"nominal\",\n          \"scale\": null\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Chef de projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Statut\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"deb\",\n            \"type\": \"temporal\",\n            \"title\": \"Début\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"fin\",\n            \"type\": \"temporal\",\n            \"title\": \"Fin prévue\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"pctTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"% achevé\"\n          },\n          {\n            \"field\": \"retardTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"Retard\"\n          }\n        ]\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.pct > 0\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"rect\",\n        \"cornerRadius\": 11\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"deb\",\n          \"type\": \"temporal\",\n          \"scale\": {\n            \"range\": [\n              320,\n              {\n                \"expr\": \"width - 96\"\n              }\n            ]\n          },\n          \"axis\": null\n        },\n        \"x2\": {\n          \"field\": \"achEnd\"\n        },\n        \"y\": {\n          \"field\": \"yP1\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"y2\": {\n          \"field\": \"yP2\"\n        },\n        \"fill\": {\n          \"field\": \"cFonce\",\n          \"type\": \"nominal\",\n          \"scale\": null\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Chef de projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Statut\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"deb\",\n            \"type\": \"temporal\",\n            \"title\": \"Début\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"fin\",\n            \"type\": \"temporal\",\n            \"title\": \"Fin prévue\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"pctTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"% achevé\"\n          },\n          {\n            \"field\": \"retardTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"Retard\"\n          }\n        ]\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.late\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"rect\",\n        \"cornerRadius\": 11,\n        \"fill\": \"#EF5B3A\",\n        \"fillOpacity\": 0.16,\n        \"stroke\": \"#EF5B3A\",\n        \"strokeWidth\": 1,\n        \"strokeDash\": [\n          4,\n          3\n        ]\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"fin\",\n          \"type\": \"temporal\",\n          \"scale\": {\n            \"range\": [\n              320,\n              {\n                \"expr\": \"width - 96\"\n              }\n            ]\n          },\n          \"axis\": null\n        },\n        \"x2\": {\n          \"field\": \"today\"\n        },\n        \"y\": {\n          \"field\": \"yP1\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"y2\": {\n          \"field\": \"yP2\"\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Chef de projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Statut\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"deb\",\n            \"type\": \"temporal\",\n            \"title\": \"Début\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"fin\",\n            \"type\": \"temporal\",\n            \"title\": \"Fin prévue\",\n            \"format\": \"%d/%m/%Y\"\n          },\n          {\n            \"field\": \"pctTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"% achevé\"\n          },\n          {\n            \"field\": \"retardTxt\",\n            \"type\": \"nominal\",\n            \"title\": \"Retard\"\n          }\n        ]\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"isValid(datum[''Jalons (liste)'']) && length(datum[''Jalons (liste)'']) > 0\"\n        },\n        {\n          \"calculate\": \"split(datum[''Jalons (liste)''], ''|'')\",\n          \"as\": \"jl\"\n        },\n        {\n          \"flatten\": [\n            \"jl\"\n          ],\n          \"as\": [\n            \"j\"\n          ]\n        },\n        {\n          \"calculate\": \"toDate(split(datum.j, ''~'')[0])\",\n          \"as\": \"jDate\"\n        },\n        {\n          \"calculate\": \"split(datum.j, ''~'')[1]\",\n          \"as\": \"Jalon\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"point\",\n        \"shape\": \"diamond\",\n        \"size\": 110,\n        \"filled\": true,\n        \"fill\": \"#16261F\",\n        \"stroke\": \"#FFFFFF\",\n        \"strokeWidth\": 1.5,\n        \"opacity\": 1\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"jDate\",\n          \"type\": \"temporal\",\n          \"scale\": {\n            \"range\": [\n              320,\n              {\n                \"expr\": \"width - 96\"\n              }\n            ]\n          },\n          \"axis\": null\n        },\n        \"y\": {\n          \"field\": \"yP\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Projet\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"Jalon\",\n            \"type\": \"nominal\"\n          },\n          {\n            \"field\": \"jDate\",\n            \"type\": \"temporal\",\n            \"title\": \"Échéance\",\n            \"format\": \"%d/%m/%Y\"\n          }\n        ]\n      }\n    },\n    {\n      \"mark\": {\n        \"type\": \"text\",\n        \"fontSize\": 11.5,\n        \"fontWeight\": 700,\n        \"fill\": \"#16261F\",\n        \"align\": \"left\",\n        \"baseline\": \"middle\",\n        \"dx\": 8\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"barEnd\",\n          \"type\": \"temporal\",\n          \"scale\": {\n            \"range\": [\n              320,\n              {\n                \"expr\": \"width - 96\"\n              }\n            ]\n          },\n          \"axis\": null\n        },\n        \"y\": {\n          \"field\": \"yP\",\n          \"type\": \"quantitative\",\n          \"scale\": null\n        },\n        \"text\": {\n          \"field\": \"pctTxt\"\n        }\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.late\"\n        }\n      ],\n      \"layer\": [\n        {\n          \"mark\": {\n            \"type\": \"rect\",\n            \"fill\": \"#FDEAE5\",\n            \"cornerRadius\": 9,\n            \"xOffset\": 50,\n            \"x2Offset\": 98\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"barEnd\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"x2\": {\n              \"field\": \"barEnd\"\n            },\n            \"y\": {\n              \"field\": \"yL1\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"y2\": {\n              \"field\": \"yL2\"\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 11,\n            \"fontWeight\": 700,\n            \"fill\": \"#A93218\",\n            \"align\": \"center\",\n            \"baseline\": \"middle\",\n            \"dx\": 74\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"barEnd\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"field\": \"yP\",\n              \"type\": \"quantitative\",\n              \"scale\": null\n            },\n            \"text\": {\n              \"field\": \"retardTxt\"\n            }\n          }\n        }\n      ]\n    },\n    {\n      \"transform\": [\n        {\n          \"filter\": \"datum.rn == 1\"\n        },\n        {\n          \"calculate\": \"''Aujourd’hui · '' + timeFormat(datum.today, ''%d/%m'')\",\n          \"as\": \"todayTxt\"\n        }\n      ],\n      \"layer\": [\n        {\n          \"mark\": {\n            \"type\": \"rule\",\n            \"stroke\": \"#FF8D00\",\n            \"strokeWidth\": 1.5\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"today\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"value\": 34\n            },\n            \"y2\": {\n              \"value\": {\n                \"expr\": \"height\"\n              }\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"rect\",\n            \"fill\": \"#FF8D00\",\n            \"cornerRadius\": 11,\n            \"xOffset\": -60,\n            \"x2Offset\": 60\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"today\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"x2\": {\n              \"field\": \"today\"\n            },\n            \"y\": {\n              \"value\": 12\n            },\n            \"y2\": {\n              \"value\": 34\n            }\n          }\n        },\n        {\n          \"mark\": {\n            \"type\": \"text\",\n            \"fontSize\": 11,\n            \"fontWeight\": 700,\n            \"fill\": \"#FFFFFF\",\n            \"align\": \"center\",\n            \"baseline\": \"middle\"\n          },\n          \"encoding\": {\n            \"x\": {\n              \"field\": \"today\",\n              \"type\": \"temporal\",\n              \"scale\": {\n                \"range\": [\n                  320,\n                  {\n                    \"expr\": \"width - 96\"\n                  }\n                ]\n              },\n              \"axis\": null\n            },\n            \"y\": {\n              \"value\": 23\n            },\n            \"text\": {\n              \"field\": \"todayTxt\"\n            }\n          }\n        }\n      ]\n    }\n  ]\n}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\n  \"autosize\": {\n    \"type\": \"fit\",\n    \"contains\": \"padding\"\n  },\n  \"padding\": 0,\n  \"view\": {\n    \"stroke\": \"transparent\"\n  },\n  \"font\": \"Segoe UI\",\n  \"text\": {\n    \"font\": \"Segoe UI\"\n  }\n}'"
+                }
+              }
+            },
+            "renderMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'svg'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "enableHighlight": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "logLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'6.4.3'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "developer": [
+        {
+          "properties": {
+            "locale": {
+              "expr": {
+                "Literal": {
+                  "Value": "'fr-FR'"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2.0.0.0'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stateManagement": [
+        {
+          "properties": {
+            "viewportHeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "806D"
+                }
+              }
+            },
+            "viewportWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "1384D"
+                }
+              }
+            },
+            "supportFieldConfiguration": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"Projet\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Chef de projet\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Début\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Fin\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Statut\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Jours de retard\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Avancement projet\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":true,\"formatted\":true,\"names\":false},\"Jalons (liste)\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":true,\"formatted\":true,\"names\":false},\"Date de référence\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":true,\"formatted\":true,\"names\":false}}'"
+                }
+              }
+            },
+            "denebMetaVersion": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2'"
+                }
+              }
+            },
+            "consolidateFieldParameters": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Planning des projets regroupés par chef de projet : avancement, dépassements, jalons et date du jour'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

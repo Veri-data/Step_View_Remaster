@@ -11,7 +11,7 @@
         {
           "location": {
             "x": 17.403983643952316,
-            "y": 630.47291393241
+            "y": 634.540696726242
           },
           "nodeIndex": "dim_projet",
           "nodeLineageTag": "4a202cdb-7796-4395-a2b9-c67d25c02630",
@@ -24,7 +24,7 @@
         {
           "location": {
             "x": 1311.8835387458751,
-            "y": 8.1355655876638728
+            "y": 12.203348381495825
           },
           "nodeIndex": "dim_resource",
           "nodeLineageTag": "ab4091f1-7135-4f86-99bb-f726d11a9926",
@@ -37,7 +37,7 @@
         {
           "location": {
             "x": 835.43619789416914,
-            "y": 82.019339392420633
+            "y": 86.087122186252586
           },
           "nodeIndex": "fait_assignment",
           "nodeLineageTag": "6e21934d-4345-4579-9cd8-324d9288baeb",
@@ -50,7 +50,7 @@
         {
           "location": {
             "x": 0,
-            "y": 97.923883530973583
+            "y": 101.99166632480554
           },
           "nodeIndex": "fait_checklist",
           "nodeLineageTag": "aa636b25-0522-4cab-9095-aa7a7a7f98b3",
@@ -63,7 +63,7 @@
         {
           "location": {
             "x": 416.26208569653625,
-            "y": 11.611764067447261
+            "y": 15.679546861279213
           },
           "nodeIndex": "dim_Task",
           "nodeLineageTag": "9d9e2007-633c-4add-ad37-bae024d0ee9e",
@@ -76,7 +76,7 @@
         {
           "location": {
             "x": 1618.4899045459715,
-            "y": 307.97042462510194
+            "y": 312.03820741893389
           },
           "nodeIndex": "dim_date",
           "nodeLineageTag": "e006428b-bfd5-452c-a83c-d286e8fbf658",
@@ -89,7 +89,7 @@
         {
           "location": {
             "x": 1156.9904565287814,
-            "y": 755.3492809167202
+            "y": 759.41706371055216
           },
           "nodeIndex": "dim_etiquette",
           "nodeLineageTag": "230ab4a5-001e-4703-a69c-a409f029096f",
@@ -102,7 +102,7 @@
         {
           "location": {
             "x": 14.283663042643184,
-            "y": 1587.9177717617297
+            "y": 1591.9855545555615
           },
           "nodeIndex": "dim_sprint",
           "nodeLineageTag": "c24dee1b-46d2-461c-86b4-e71cb0af6e06",
@@ -115,7 +115,7 @@
         {
           "location": {
             "x": 697.85207974842683,
-            "y": 1421.1638034799792
+            "y": 1425.231586273811
           },
           "nodeIndex": "fait_equipe",
           "nodeLineageTag": "3dd1cf47-8868-49b2-a8a9-982a4cf7259b",
@@ -128,7 +128,7 @@
         {
           "location": {
             "x": 704.00460085096381,
-            "y": 714.72210055489575
+            "y": 718.7898833487277
           },
           "nodeIndex": "pont_tache_etiquette",
           "nodeLineageTag": "3bea45c7-22ba-475e-9cee-39c7eee18e39",
@@ -137,6 +137,32 @@
             "width": 234
           },
           "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1902.4899045459715,
+            "y": 763.34385715302346
+          },
+          "nodeIndex": "Mesures",
+          "nodeLineageTag": "1cd61f01-d75d-4bf6-8ecd-9a574cf72618",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2186.4899045459715,
+            "y": 813.34385715302346
+          },
+          "nodeIndex": "Actualisation",
+          "nodeLineageTag": "43f85d2a-ddb2-4716-a623-66902fb0e189",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
         }
       ],
       "name": "Toutes les tables",

@@ -9,6 +9,15 @@
         "page": "2.3.1"
       },
       "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "BNI_theme-087d7243.json",
+      "reportVersionAtImport": {
+        "visual": "2.13.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "RegisteredResources"
     }
   },
   "objects": {
@@ -31,7 +40,7 @@
           "expanded": {
             "expr": {
               "Literal": {
-                "Value": "true"
+                "Value": "false"
               }
             }
           },
@@ -57,6 +66,52 @@
           "type": "BaseTheme"
         }
       ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "BNI_fond_1_nos-projets23684636538323534.png",
+          "path": "BNI_fond_1_nos-projets23684636538323534.png",
+          "type": "Image"
+        },
+        {
+          "name": "BNI_icone_filtre20261009180002.svg",
+          "path": "BNI_icone_filtre20261009180002.svg",
+          "type": "Image"
+        },
+        {
+          "name": "BNI_legende_charge20261009190001.svg",
+          "path": "BNI_legende_charge20261009190001.svg",
+          "type": "Image"
+        },
+        {
+          "name": "BNI_logo20261009180001.png",
+          "path": "BNI_logo20261009180001.png",
+          "type": "Image"
+        },
+        {
+          "name": "BNI_theme-087d7243.json",
+          "path": "BNI_theme-087d7243.json",
+          "type": "CustomTheme"
+        },
+        {
+          "name": "Fond_Power_BI___Nos_ressources04226687255776407.png",
+          "path": "Fond_Power_BI___Nos_ressources04226687255776407.png",
+          "type": "Image"
+        },
+        {
+          "name": "Fond_Power_BI___Timeline_proje5183381451386697.png",
+          "path": "Fond_Power_BI___Timeline_proje5183381451386697.png",
+          "type": "Image"
+        },
+        {
+          "name": "BNI_legende_planning20261009200001.svg",
+          "path": "BNI_legende_planning20261009200001.svg",
+          "type": "Image"
+        }
+      ]
     }
   ],
   "settings": {
@@ -66,5 +121,8 @@
     "allowChangeFilterTypes": true,
     "useEnhancedTooltips": true,
     "useDefaultAggregateDisplayName": true
-  }
+  },
+  "publicCustomVisuals": [
+    "deneb7E15AEF80B9E4D4F8E12924291ECE89A"
+  ]
 }

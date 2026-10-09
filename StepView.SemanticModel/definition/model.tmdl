@@ -21,9 +21,9 @@ queryGroup 02_FACT
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Project","Project_Task","Resource_assignment","Resource","Project_bucket","Project_checklist","Project_label","Project_sprint","project_task_dependency","Project_task_to_label","Project_team","System_user","fait_checklist","fait_assignment","fait_equipe","pont_tache_etiquette","EnvURL","ModeleURLProjet","fnParis","Indicateur_couleur","Label","dim_task_dependency","dim_Task","dim_resource","dim_projet","dim_sprint","dim_etiquette"]
+annotation PBI_QueryOrder = ["Project","Project_Task","Resource_assignment","Resource","Project_bucket","Project_checklist","Project_label","Project_sprint","project_task_dependency","Project_task_to_label","Project_team","System_user","fait_checklist","fait_assignment","fait_equipe","pont_tache_etiquette","EnvURL","ModeleURLProjet","fnParis","Indicateur_couleur","Label","dim_task_dependency","dim_Task","dim_resource","dim_projet","dim_sprint","dim_etiquette","Mesures"]
 
-annotation PBI_ProTooling = ["DevMode","TMDLView_Desktop"]
+annotation PBI_ProTooling = ["DevMode","TMDLView_Desktop","MCP-PBIModeling"]
 
 ref table dim_Task
 ref table fait_checklist
@@ -35,6 +35,8 @@ ref table dim_sprint
 ref table dim_etiquette
 ref table fait_equipe
 ref table pont_tache_etiquette
+ref table Mesures
+ref table Actualisation
 
 ref cultureInfo fr-FR
 

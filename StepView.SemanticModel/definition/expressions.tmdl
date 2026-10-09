@@ -173,15 +173,13 @@ expression Project =
 		    Actif = Table.AddColumn(Avancement, "Actif", each [EtatCode] = 0, type logical),
 		
 		    Statut = Table.AddColumn(Actif, "Statut", each
-		        if not [Actif]                                    then "Fermé"
-		        else if [Avancement] >= 1                         then "Terminé"
-		        else if [Début] = null or [Fin] = null            then "Non planifié"
-		        else if [Fin] < Aujourdhui                        then "En retard"
-		        else if [Début] > Aujourdhui                      then "Non démarré"
+		        if not [Actif] or [Avancement] >= 1               then "Terminé"
+		        else if [Fin] <> null and [Fin] < Aujourdhui      then "En retard"
+		        else if [Début] = null or [Début] > Aujourdhui    then "Pas commencé"
 		        else                                                   "En cours", type text),
 		
 		    StatutOrdre = Table.AddColumn(Statut, "Statut ordre", each
-		        Record.FieldOrDefault([#"Non démarré"=1, #"En cours"=2, #"En retard"=3, #"Terminé"=4, #"Fermé"=5, #"Non planifié"=6], [Statut], 9),
+		        Record.FieldOrDefault([#"En retard"=1, #"En cours"=2, #"Pas commencé"=3, #"Terminé"=4], [Statut], 9),
 		        Int64.Type),
 		
 		    DureeCal = Table.AddColumn(StatutOrdre, "Durée calendaire (j)", each
@@ -348,26 +346,25 @@ expression Project_Task =
 		
 		    // ============ 10. STATUT ============
 		    Statut = Table.AddColumn(PrioriteOrdre, "Statut", each
-		        if [Avancement] >= 1                              then "Terminée"
-		        else if [Échéance] = null                         then "Non planifiée"
-		        else if [Échéance] < Aujourdhui                   then "En retard"
-		        else if [Avancement] = 0 and ([Début] = null or [Début] > Aujourdhui) then "Non démarrée"
-		        else                                                   "En cours", type text),
+		        if [Avancement] >= 1                                   then "Terminé"
+		        else if [Échéance] <> null and [Échéance] < Aujourdhui then "En retard"
+		        else if [Avancement] = 0 and ([Début] = null or [Début] > Aujourdhui) then "Pas commencé"
+		        else                                                        "En cours", type text),
 		
 		    StatutOrdre = Table.AddColumn(Statut, "Statut ordre", each
-		        Record.FieldOrDefault([#"Non démarrée"=1, #"En cours"=2, #"En retard"=3, #"Terminée"=4, #"Non planifiée"=5], [Statut], 9),
+		        Record.FieldOrDefault([#"En retard"=1, #"En cours"=2, #"Pas commencé"=3, #"Terminé"=4], [Statut], 9),
 		        Int64.Type),
 		
 		    // ============ 11. INDICATEURS DE DÉLAI ============
 		    JoursRestants = Table.AddColumn(StatutOrdre, "Jours restants", each
-		        if [Échéance] = null or [Statut] = "Terminée" then null
+		        if [Échéance] = null or [Statut] = "Terminé" then null
 		        else Duration.Days([Échéance] - Aujourdhui), Int64.Type),
 		
 		    JoursRetard = Table.AddColumn(JoursRestants, "Jours de retard", each
 		        if [Statut] = "En retard" then Duration.Days(Aujourdhui - [Échéance]) else 0, Int64.Type),
 		
 		    Echeance = Table.AddColumn(JoursRetard, "Échéance (catégorie)", each
-		        if [Statut] = "Terminée"          then "Terminée"
+		        if [Statut] = "Terminé"           then "Terminée"
 		        else if [Échéance] = null         then "Sans date"
 		        else if [Jours restants] < 0      then "Dépassée"
 		        else if [Jours restants] = 0      then "Aujourd'hui"

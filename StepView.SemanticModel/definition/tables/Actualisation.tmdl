@@ -1,0 +1,19 @@
+table Actualisation
+	isHidden
+	lineageTag: 43f85d2a-ddb2-4716-a623-66902fb0e189
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: 984fe190-7c2a-470e-ab0b-d647d2c75b71
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Actualisation = calculated
+		mode: import
+		source = ROW ( "Date", UTCNOW () )
+

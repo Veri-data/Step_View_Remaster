@@ -1,0 +1,1176 @@
+table Mesures
+	lineageTag: 1cd61f01-d75d-4bf6-8ecd-9a574cf72618
+
+	measure 'Nb projets' = COUNTROWS ( dim_projet )
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 28ac3333-b34d-4180-a82f-b39aee61a7bd
+
+	measure 'Nb chefs de projet' = DISTINCTCOUNT ( dim_projet[Chef de projet] )
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: d04f26f9-2dae-427e-8a0c-9241be6871e7
+
+	measure 'Projets en cours' = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Statut] = "En cours" ) ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 49f1baf8-958d-4eaf-a445-aba5d81717f3
+
+	measure 'Projets terminés' = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Statut] = "Terminé" ) ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: cc8a3bb6-6262-4e79-8236-76f13dd25e79
+
+	measure 'Projets en retard' = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Statut] = "En retard" ) ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 360d420b-1282-46f7-9d3f-034e7610d24a
+
+	measure 'Projets pas commencés' = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Statut] = "Pas commencé" ) ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: a9746000-6f70-485e-8152-df630d26bfb7
+
+	measure '% En cours' = DIVIDE ( [Projets en cours], [Nb projets] )
+		formatString: 0.0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: 13326681-7962-4ce8-8a87-e0f029fadac4
+
+	measure '% Terminés' = DIVIDE ( [Projets terminés], [Nb projets] )
+		formatString: 0.0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: 2e0e7c0b-456d-4771-b26f-b8e744d3b728
+
+	measure '% En retard' = DIVIDE ( [Projets en retard], [Nb projets] )
+		formatString: 0.0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: 72ab7dbd-d362-4ed7-8fb1-a199699a22b7
+
+	/// Approximation : date d'achèvement = dernière modification d'une tâche du projet.
+	measure 'Terminés dans les délais' =
+			VAR _termines = CALCULATETABLE ( dim_projet, KEEPFILTERS ( dim_projet[Statut] = "Terminé" ) )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            _termines,
+			            VAR _fin = dim_projet[Fin]
+			            VAR _achevement = CALCULATE ( MAX ( dim_Task[Modifié le] ) )
+			            RETURN NOT ISBLANK ( _fin ) && NOT ISBLANK ( _achevement ) && INT ( _achevement ) <= _fin
+			        )
+			    ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 0b53fcfd-2196-4f48-9377-ea8960551f3f
+
+	measure '% Dans les délais' = DIVIDE ( [Terminés dans les délais], [Projets terminés] )
+		formatString: 0.0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: 7f13d5c2-436c-4583-942c-a68c1dcf8770
+
+	measure 'Durée totale (j)' = SUM ( dim_projet[Durée (j ouvrés)] ) + 0
+		formatString: #,##0
+		displayFolder: 1 · Nos projets
+		lineageTag: fa02eb83-dd17-45b7-b967-f78425527e0a
+
+	measure 'Durée moyenne (j)' = AVERAGE ( dim_projet[Durée (j ouvrés)] )
+		formatString: #,##0
+		displayFolder: 1 · Nos projets
+		lineageTag: 47a2b9fd-a654-46cd-9319-cc7d134b3108
+
+	measure 'Nb tâches' = CALCULATE ( COUNTROWS ( dim_Task ), dim_Task[Est tâche de travail] = TRUE () )
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 4cb07504-a6d2-4fac-aaf1-dda29163c439
+
+	measure 'Tâches en retard (total)' = CALCULATE ( [Nb tâches], KEEPFILTERS ( dim_Task[Statut] = "En retard" ) ) + 0
+		formatString: 0
+		displayFolder: 1 · Nos projets
+		lineageTag: 1f2679a5-5b20-42d0-8bb1-26bc273b4119
+
+	measure 'Charge planifiée (h)' = CALCULATE ( SUM ( dim_Task[Effort (h)] ), dim_Task[Est tâche de travail] = TRUE () ) + 0
+		formatString: #,##0
+		displayFolder: 1 · Nos projets
+		lineageTag: d7ff0e99-bba7-4994-8804-1238467322d7
+
+	measure 'Charge réalisée (h)' = CALCULATE ( SUM ( dim_Task[Effort réalisé (h)] ), dim_Task[Est tâche de travail] = TRUE () ) + 0
+		formatString: #,##0
+		displayFolder: 1 · Nos projets
+		lineageTag: 819b8b61-b302-428a-96dc-cf08f82e2e93
+
+	/// Travail achevé : heures réalisées / heures planifiées des tâches de travail (guide DAX). Avancement Planner si aucune heure n'est planifiée.
+	measure 'Avancement projet' =
+			VAR _plan = [Charge planifiée (h)]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( [Nb projets] ),
+			        IF ( _plan > 0, DIVIDE ( [Charge réalisée (h)], _plan ), AVERAGE ( dim_projet[Avancement] ) )
+			    )
+		formatString: 0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: efe8c596-d8a7-4ad2-b901-2c8e56bf3213
+
+	/// Travail achevé du portefeuille : heures réalisées / heures planifiées (guide DAX). Avancement Planner si aucune heure n'est planifiée.
+	measure 'Avancement global' =
+			VAR _plan = [Charge planifiée (h)]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( [Nb projets] ),
+			        IF ( _plan > 0, DIVIDE ( [Charge réalisée (h)], _plan ), AVERAGE ( dim_projet[Avancement] ) )
+			    )
+		formatString: 0.0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: 4bc9ceee-866b-4bee-8aae-afd0daf713c0
+
+	measure '% Délai consommé' =
+			VAR _debut = MIN ( dim_projet[Début] )
+			VAR _fin = MAX ( dim_projet[Fin] )
+			VAR _total = DATEDIFF ( _debut, _fin, DAY )
+			VAR _ecoule = DATEDIFF ( _debut, MIN ( TODAY (), _fin ), DAY )
+			RETURN IF ( _total > 0, DIVIDE ( MAX ( 0, _ecoule ), _total ) )
+		formatString: 0 %
+		displayFolder: 1 · Nos projets
+		lineageTag: d65509d4-1c6f-4c7e-81c5-a8506f5729ca
+
+	measure 'Couleur statut' =
+			SWITCH (
+			    SELECTEDVALUE ( dim_projet[Statut] ),
+			    "En cours", "#3F86C8",
+			    "En retard", "#EF5B3A",
+			    "Pas commencé", "#B4BFB9",
+			    "Terminé", "#00734E",
+			    "#B4BFB9"
+			)
+		displayFolder: 1 · Nos projets
+		lineageTag: 395edbab-1b70-41cb-98b8-77c23fd6c20e
+
+	measure 'Libellé heures' = FORMAT ( [Charge réalisée (h)], "#,##0" ) & " / " & FORMAT ( [Charge planifiée (h)], "#,##0" ) & " h"
+		displayFolder: 1 · Nos projets
+		lineageTag: d70ce35c-1201-44c5-bdda-3673ced012d3
+
+	measure 'Sous-titre projets' = FORMAT ( [Nb chefs de projet], "0" ) & " chefs de projet"
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: 50f75cda-9167-4961-ac59-3880e5378e09
+
+	measure 'Sous-titre durée' = "moy. " & FORMAT ( [Durée moyenne (j)], "0" ) & " j ouvrés / projet"
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: 76c3c3f9-e5f7-45e0-ab89-f119ac0212b6
+
+	measure 'Sous-titre en cours' = [Projets en cours] & " projets sur " & [Nb projets]
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: c00183e4-3ecc-4ec7-9198-f3903371b8d8
+
+	measure 'Sous-titre terminés' = [Projets terminés] & " projets sur " & [Nb projets]
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: 8cdef35b-9e07-42b2-b0bb-48ad1ba1c944
+
+	measure 'Sous-titre retard' = [Projets en retard] & " projets sur " & [Nb projets]
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: 512a3fa6-3781-4579-bef1-b699055b3ead
+
+	measure 'Sous-titre délais' = [Terminés dans les délais] & " sur " & [Projets terminés] & " livrés à temps"
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: fb25fbd9-5dc2-439f-8bca-d3558c4bd65c
+
+	measure 'Sous-titre avancement' = FORMAT ( [Charge réalisée (h)], "#,##0" ) & " h / " & FORMAT ( [Charge planifiée (h)], "#,##0" ) & " h"
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: f126f203-e7d9-4842-bc7c-758fcb811385
+
+	measure 'Sous-titre tâches retard' = "sur " & FORMAT ( [Nb tâches] + 0, "0" ) & " tâches au total"
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: bbdb1bf6-426e-4917-acac-81f6bf6b2e5f
+
+	measure 'Libellé actualisation' =
+			VAR _d = MAX ( Actualisation[Date] )
+			RETURN "Actualisé le " & FORMAT ( _d, "dd/mm/yyyy" ) & " à " & FORMAT ( _d, "hh:nn" )
+		displayFolder: 1 · Nos projets\Sous-titres
+		lineageTag: 71da1a86-0a64-4f21-b2c8-08876906d989
+
+	measure 'Légende statuts' =
+			VAR _total = [Nb projets]
+			VAR _statuts =
+			    DATATABLE (
+			        "Ordre", INTEGER, "Statut", STRING, "Couleur", STRING,
+			        {
+			            { 1, "En retard", "%23EF5B3A" },
+			            { 2, "En cours", "%233F86C8" },
+			            { 3, "Pas commencé", "%23B4BFB9" },
+			            { 4, "Terminé", "%2300734E" }
+			        }
+			    )
+			VAR _lignes =
+			    CONCATENATEX (
+			        _statuts,
+			        VAR _y = ( [Ordre] - 1 ) * 44
+			        VAR _s = [Statut]
+			        VAR _n = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Statut] = _s ) ) + 0
+			        RETURN
+			            "<rect x='0' y='" & _y + 4 & "' width='10' height='10' rx='2' fill='" & [Couleur] & "'/>"
+			                & "<text x='21' y='" & _y + 14 & "' font-family='Segoe UI' font-size='15' font-weight='600' fill='%2316261F'>" & _s & "</text>"
+			                & "<text x='21' y='" & _y + 32 & "' font-family='Segoe UI' font-size='14' fill='%2366736C'>"
+			                & "<tspan font-weight='700' fill='%2316261F'>" & _n & "</tspan>" & IF ( _n > 1, " projets", " projet" )
+			                & " · " & FORMAT ( DIVIDE ( _n, _total ) * 100 + 0, "0.0" ) & " %25</text>",
+			        "",
+			        [Ordre], ASC
+			    )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='176' viewBox='0 0 180 176'>"
+			        & _lignes & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: b1427d29-d99f-4942-9789-b0e8b4bd0f49
+		dataCategory: ImageUrl
+
+	measure 'Graphique chefs' =
+			VAR _base =
+			    FILTER ( ADDCOLUMNS ( VALUES ( dim_projet[Chef de projet] ), "@n", [Nb projets] ), [@n] > 0 )
+			VAR _top = TOPN ( 5, _base, [@n], DESC, dim_projet[Chef de projet], ASC )
+			VAR _max = MAXX ( _top, [@n] )
+			VAR _x0 = 178
+			VAR _w = 285
+			VAR _rang =
+			    ADDCOLUMNS (
+			        _top,
+			        "@r",
+			            VAR _n0 = [@n]
+			            VAR _c0 = dim_projet[Chef de projet]
+			            RETURN COUNTROWS ( FILTER ( _top, [@n] > _n0 || ( [@n] = _n0 && dim_projet[Chef de projet] < _c0 ) ) ) + 1
+			    )
+			VAR _lignes =
+			    CONCATENATEX (
+			        _rang,
+			        VAR _cy = 30 + ( [@r] - 1 ) * 36
+			        VAR _c = dim_projet[Chef de projet]
+			        VAR _nomBrut = SUBSTITUTE ( SUBSTITUTE ( SUBSTITUTE ( _c, "&", "et" ), "<", "" ), "#", "" )
+			        VAR _nom = IF ( LEN ( _nomBrut ) > 17, LEFT ( _nomBrut, 16 ) & "…", _nomBrut )
+			        VAR _sp = SEARCH ( " ", _c, 1, 0 )
+			        VAR _ini = UPPER ( LEFT ( _c, 1 ) & IF ( _sp > 0, MID ( _c, _sp + 1, 1 ) ) )
+			        VAR _n1 = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Chef de projet] = _c ), KEEPFILTERS ( dim_projet[Statut] = "En retard" ) ) + 0
+			        VAR _n2 = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Chef de projet] = _c ), KEEPFILTERS ( dim_projet[Statut] = "En cours" ) ) + 0
+			        VAR _n3 = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Chef de projet] = _c ), KEEPFILTERS ( dim_projet[Statut] = "Pas commencé" ) ) + 0
+			        VAR _n4 = CALCULATE ( [Nb projets], KEEPFILTERS ( dim_projet[Chef de projet] = _c ), KEEPFILTERS ( dim_projet[Statut] = "Terminé" ) ) + 0
+			        VAR _w1 = INT ( _n1 / _max * _w )
+			        VAR _w2 = INT ( _n2 / _max * _w )
+			        VAR _w3 = INT ( _n3 / _max * _w )
+			        VAR _w4 = INT ( _n4 / _max * _w )
+			        VAR _x2 = _x0 + _w1
+			        VAR _x3 = _x2 + _w2
+			        VAR _x4 = _x3 + _w3
+			        VAR _yb = _cy - 10
+			        VAR _seg1 = IF ( _n1 > 0, "<rect x='" & _x0 & "' y='" & _yb & "' width='" & MAX ( _w1 - 4, 2 ) & "' height='19' rx='4' fill='%23EF5B3A'/>" )
+			        VAR _seg2 = IF ( _n2 > 0, "<rect x='" & _x2 & "' y='" & _yb & "' width='" & MAX ( _w2 - 4, 2 ) & "' height='19' rx='4' fill='%233F86C8'/>" )
+			        VAR _seg3 = IF ( _n3 > 0, "<rect x='" & _x3 & "' y='" & _yb & "' width='" & MAX ( _w3 - 4, 2 ) & "' height='19' rx='4' fill='%23B4BFB9'/>" )
+			        VAR _seg4 = IF ( _n4 > 0, "<rect x='" & _x4 & "' y='" & _yb & "' width='" & MAX ( _w4 - 4, 2 ) & "' height='19' rx='4' fill='%2300734E'/>" )
+			        RETURN
+			            "<circle cx='17' cy='" & _cy & "' r='15' fill='%2300734E'/>"
+			                & "<text x='17' y='" & _cy + 4 & "' text-anchor='middle' font-family='Segoe UI' font-size='10.5' font-weight='700' fill='white'>" & _ini & "</text>"
+			                & "<text x='40' y='" & _cy + 5 & "' font-family='Segoe UI' font-size='14' font-weight='600' fill='%2316261F'>" & _nom & "</text>"
+			                & _seg1 & _seg2 & _seg3 & _seg4
+			                & "<text x='504' y='" & _cy + 5 & "' text-anchor='end' font-family='Segoe UI' font-size='14' font-weight='700' fill='%2316261F'>" & [@n] & "</text>",
+			        "",
+			        [@r], ASC
+			    )
+			VAR _legende =
+			    "<g font-family='Segoe UI' font-size='12' fill='%234E5D55'>"
+			        & "<rect x='3' y='218' width='9' height='9' rx='2' fill='%23EF5B3A'/><text x='18' y='227'>En retard</text>"
+			        & "<rect x='81' y='218' width='9' height='9' rx='2' fill='%233F86C8'/><text x='96' y='227'>En cours</text>"
+			        & "<rect x='165' y='218' width='9' height='9' rx='2' fill='%23B4BFB9'/><text x='180' y='227'>Pas commencé</text>"
+			        & "<rect x='277' y='218' width='9' height='9' rx='2' fill='%2300734E'/><text x='292' y='227'>Terminé</text></g>"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='520' height='232' viewBox='0 0 520 232'>"
+			        & _lignes & _legende & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 87553869-6693-4eb6-93d8-011ccf963086
+		dataCategory: ImageUrl
+
+	measure 'Barre avancement' =
+			VAR _av = MIN ( MAX ( [Avancement projet], 0 ), 1 )
+			VAR _delai = [% Délai consommé]
+			VAR _couleur = SUBSTITUTE ( [Couleur statut], "#", "%23" )
+			RETURN
+			    IF (
+			        ISINSCOPE ( dim_projet[Projet] ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='430' height='18' viewBox='0 0 430 18'>"
+			            & "<rect x='0' y='4' width='430' height='10' rx='5' fill='%23E9EEEB'/>"
+			            & IF ( _av > 0, "<rect x='0' y='4' width='" & MAX ( INT ( _av * 430 ), 10 ) & "' height='10' rx='5' fill='" & _couleur & "'/>" )
+			            & IF ( NOT ISBLANK ( _delai ), "<rect x='" & INT ( MIN ( _delai, 1 ) * 428 ) & "' y='0' width='2' height='18' rx='1' fill='%2316261F'/>" )
+			            & "</svg>"
+			    )
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 4e267e97-deeb-4f87-9cb3-abff7840a446
+		dataCategory: ImageUrl
+
+	measure 'Barre achèvement' =
+			VAR _p = MIN ( MAX ( [% Achèvement], 0 ), 1 )
+			VAR _statut = [Statut ligne]
+			VAR _couleur = SWITCH ( _statut, "En cours", "%233F86C8", "En retard", "%23EF5B3A", "Terminé", "%2300734E", "%23B4BFB9" )
+			VAR _graisse = IF ( ISINSCOPE ( dim_Task[Tâche] ), "400", "600" )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _statut ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='24' viewBox='0 0 150 24'>"
+			            & "<rect x='0' y='9' width='104' height='6' rx='3' fill='%23E9EEEB'/>"
+			            & IF ( _p > 0, "<rect x='0' y='9' width='" & MAX ( INT ( _p * 104 ), 6 ) & "' height='6' rx='3' fill='" & _couleur & "'/>" )
+			            & "<text x='150' y='16' text-anchor='end' font-family='Segoe UI' font-size='12.5' font-weight='" & _graisse & "' fill='%2316261F'>"
+			            & FORMAT ( _p * 100, "0" ) & " %25</text>"
+			            & "</svg>"
+			    )
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: fc6b3514-6434-4802-ad90-c9ef65610368
+		dataCategory: ImageUrl
+
+	measure 'Statut ligne' =
+			IF (
+			    ISINSCOPE ( dim_Task[Tâche] ),
+			    CALCULATE (
+			        SELECTEDVALUE ( dim_Task[Statut] ),
+			        CROSSFILTER ( fait_assignment[TacheId], dim_Task[TacheId], BOTH )
+			    ),
+			    SELECTEDVALUE ( dim_projet[Statut] )
+			)
+		isHidden
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: a442a0d7-21d7-4d4d-b863-3939a3c40ffe
+
+	measure 'Icône statut' =
+			VAR _statut = [Statut ligne]
+			VAR _fond = SWITCH ( _statut, "En cours", "%23E6F0FA", "En retard", "%23FDEAE5", "Pas commencé", "%23EEF1EF", "Terminé", "%23E1F2E8" )
+			VAR _encre = SWITCH ( _statut, "En cours", "%231F5F99", "En retard", "%23A93218", "Pas commencé", "%2356635C", "Terminé", "%2300673F" )
+			VAR _largeur = SWITCH ( _statut, "En cours", 86, "En retard", 90, "Pas commencé", 122, "Terminé", 84, 100 )
+			VAR _icone =
+			    SWITCH (
+			        _statut,
+			        "En retard", "<path d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/><path d='M12 9v4M12 17h.01'/>",
+			        "Terminé", "<circle cx='12' cy='12' r='9'/><path d='m8.5 12.5 2.5 2.5 5-5.5'/>",
+			        "En cours", "<circle cx='12' cy='12' r='9'/><path d='M12 3a9 9 0 0 1 0 18z' fill='" & _encre & "'/>",
+			        "<circle cx='12' cy='12' r='9' stroke-dasharray='3.5 3'/>"
+			    )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _statut ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='24' viewBox='0 0 150 24'>"
+			            & "<rect width='" & _largeur & "' height='24' rx='12' fill='" & _fond & "'/>"
+			            & "<g transform='translate(10 5.5) scale(0.5417)' fill='none' stroke='" & _encre & "' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'>"
+			            & _icone & "</g>"
+			            & "<text x='29' y='16' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & _encre & "'>" & _statut & "</text>"
+			            & "</svg>"
+			    )
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: a4120d3a-814a-4e87-9d1f-0f259260b09d
+		dataCategory: ImageUrl
+
+	measure 'URL projet (matrice)' =
+			IF (
+			    ISINSCOPE ( dim_projet[Projet] ) && NOT ISINSCOPE ( dim_Task[Tâche] ),
+			    SELECTEDVALUE ( dim_projet[Lien projet] )
+			)
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: c78705db-f4c2-48c4-b80a-8419d532f9c9
+		dataCategory: WebUrl
+
+	measure 'Début (matrice)' = CALCULATE ( MIN ( dim_Task[Début] ), CROSSFILTER ( fait_assignment[TacheId], dim_Task[TacheId], BOTH ) )
+		formatString: dd/mm/yyyy
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: f4edb76b-1055-4359-bebf-67c37eeb05b1
+
+	measure 'Fin (matrice)' = CALCULATE ( MAX ( dim_Task[Échéance] ), CROSSFILTER ( fait_assignment[TacheId], dim_Task[TacheId], BOTH ) )
+		formatString: dd/mm/yyyy
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: cf2620a0-5687-4c8f-9d7e-fcc8bc49dada
+
+	measure '% Achèvement' =
+			SWITCH (
+			    TRUE (),
+			    ISINSCOPE ( dim_Task[Tâche] ),
+			        CALCULATE ( AVERAGE ( dim_Task[Avancement] ), CROSSFILTER ( fait_assignment[TacheId], dim_Task[TacheId], BOTH ) ),
+			    ISINSCOPE ( dim_projet[Projet] ), [Avancement projet],
+			    [Avancement global]
+			)
+		formatString: 0 %
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 0f1f41c4-1f73-4926-9ba8-664bd5d16f38
+
+	measure 'Tâches total' = CALCULATE ( COUNTROWS ( dim_Task ), CROSSFILTER ( fait_assignment[TacheId], dim_Task[TacheId], BOTH ) )
+		formatString: 0
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 31316079-982b-4734-99b2-f5c8846194d9
+
+	measure 'Tâches en cours' =
+			VAR _n = CALCULATE ( [Tâches total], KEEPFILTERS ( dim_Task[Statut] = "En cours" ) )
+			RETURN IF ( NOT ISBLANK ( [Tâches total] ), _n + 0 )
+		formatString: 0
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: e00fe155-36e6-4892-becd-771da43420ee
+
+	measure 'Tâches en retard' =
+			VAR _n = CALCULATE ( [Tâches total], KEEPFILTERS ( dim_Task[Statut] = "En retard" ) )
+			RETURN IF ( NOT ISBLANK ( [Tâches total] ), _n + 0 )
+		formatString: 0
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 59dde4bb-8ce7-4386-80ed-eed4ed3c6a5a
+
+	measure 'Tâches pas commencées' =
+			VAR _n = CALCULATE ( [Tâches total], KEEPFILTERS ( dim_Task[Statut] = "Pas commencé" ) )
+			RETURN IF ( NOT ISBLANK ( [Tâches total] ), _n + 0 )
+		formatString: 0
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 764ef4d2-8755-4fca-875d-74f8f30ef63f
+
+	measure 'Tâches terminées' =
+			VAR _n = CALCULATE ( [Tâches total], KEEPFILTERS ( dim_Task[Statut] = "Terminé" ) )
+			RETURN IF ( NOT ISBLANK ( [Tâches total] ), _n + 0 )
+		formatString: 0
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 418cc8a6-7da3-480d-bbc0-a5d7da88282b
+
+	measure 'KPI projets (svg)' =
+			VAR _valeur = FORMAT ( [Nb projets] + 0, "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Nb chefs de projet] + 0, "0" )
+			VAR _apres = IF ( [Nb chefs de projet] > 1, " chefs de projet", " chef de projet" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 42460c58-7c55-436e-9cec-8ddb0b237617
+		dataCategory: ImageUrl
+
+	measure 'KPI durée (svg)' =
+			VAR _valeur = FORMAT ( [Durée totale (j)] + 0, "#,##0" )
+			VAR _unite = "j"
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Durée moyenne (j)] + 0, "#,##0" ) & " j"
+			VAR _apres = " ouvrés / projet"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'>moy. <tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 7ed9424b-3904-46d7-95d8-2f2804cce374
+		dataCategory: ImageUrl
+
+	measure 'KPI en cours (svg)' =
+			VAR _valeur = FORMAT ( COALESCE ( [% En cours], 0 ) * 100, "0.0" )
+			VAR _unite = "%25"
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Projets en cours], "0" )
+			VAR _apres = IF ( [Projets en cours] > 1, " projets sur ", " projet sur " ) & FORMAT ( [Nb projets] + 0, "0" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 70a8ac4a-9770-4f87-8b5c-fdc67c3729ed
+		dataCategory: ImageUrl
+
+	measure 'KPI terminés (svg)' =
+			VAR _valeur = FORMAT ( COALESCE ( [% Terminés], 0 ) * 100, "0.0" )
+			VAR _unite = "%25"
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Projets terminés], "0" )
+			VAR _apres = IF ( [Projets terminés] > 1, " projets sur ", " projet sur " ) & FORMAT ( [Nb projets] + 0, "0" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: ae9d8d84-af68-44e3-9b64-52972ef259df
+		dataCategory: ImageUrl
+
+	measure 'KPI en retard (svg)' =
+			VAR _valeur = FORMAT ( COALESCE ( [% En retard], 0 ) * 100, "0.0" )
+			VAR _unite = "%25"
+			VAR _couleur = IF ( [Projets en retard] > 0, "%23C63E22", "%2316261F" )
+			VAR _gras = FORMAT ( [Projets en retard], "0" )
+			VAR _apres = IF ( [Projets en retard] > 1, " projets sur ", " projet sur " ) & FORMAT ( [Nb projets] + 0, "0" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: ddcd3a96-b6fe-4865-b67f-b0cb6189b493
+		dataCategory: ImageUrl
+
+	measure 'KPI délais (svg)' =
+			VAR _valeur = IF ( [Projets terminés] > 0, FORMAT ( COALESCE ( [% Dans les délais], 0 ) * 100, "0.0" ), "—" )
+			VAR _unite = IF ( [Projets terminés] > 0, "%25" )
+			VAR _couleur = IF ( [Projets terminés] > 0, "%2316261F", "%238A968F" )
+			VAR _gras = IF ( [Projets terminés] > 0, FORMAT ( [Terminés dans les délais], "0" ) )
+			VAR _apres = IF ( [Projets terminés] > 0, " sur " & FORMAT ( [Projets terminés], "0" ) & " livrés à temps", "Aucun projet terminé" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: d776b0af-4452-4f61-947e-28ca206ea765
+		dataCategory: ImageUrl
+
+	measure 'KPI avancement (svg)' =
+			VAR _valeur = FORMAT ( COALESCE ( [Avancement global], 0 ) * 100, "0.0" )
+			VAR _unite = "%25"
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Charge réalisée (h)], "#,##0" ) & " h"
+			VAR _apres = " / " & FORMAT ( [Charge planifiée (h)], "#,##0" ) & " h"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 0bef1a85-1c76-43ff-9d82-3fad5828696d
+		dataCategory: ImageUrl
+
+	measure 'KPI tâches en retard (svg)' =
+			VAR _valeur = FORMAT ( [Tâches en retard (total)], "#,##0" )
+			VAR _unite = ""
+			VAR _couleur = IF ( [Tâches en retard (total)] > 0, "%23C63E22", "%2316261F" )
+			VAR _gras = FORMAT ( [Nb tâches] + 0, "#,##0" )
+			VAR _apres = " tâches au total"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'>sur <tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 60407495-fca1-4930-9d2e-e50b1520acd9
+		dataCategory: ImageUrl
+
+	measure 'Centre donut (svg)' =
+			VAR _n = [Nb projets] + 0
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='56' viewBox='0 0 120 56'>"
+			        & "<text x='60' y='30' text-anchor='middle' font-family='Segoe UI' font-size='36' font-weight='700' fill='%2316261F'>" & FORMAT ( _n, "0" ) & "</text>"
+			        & "<text x='60' y='48' text-anchor='middle' font-family='Segoe UI' font-size='12' fill='%2366736C'>" & IF ( _n > 1, "projets", "projet" ) & "</text>"
+			        & "</svg>"
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 630809ac-b42e-4978-8ad0-1d357e5b6763
+		dataCategory: ImageUrl
+
+	measure 'Actualisation (svg)' =
+			VAR _d = MAX ( Actualisation[Date] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _d ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='208' height='28' viewBox='0 0 208 28'>"
+			            & "<g transform='translate(0 7) scale(0.58)' fill='none' stroke='%234E5D55' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'>"
+			            & "<path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5'/>"
+			            & "<path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M8 16H3v5'/></g>"
+			            & "<text x='20' y='19' font-family='Segoe UI' font-size='14' fill='%234E5D55'>Actualisé le "
+			            & FORMAT ( _d, "dd/mm/yyyy" ) & " à " & FORMAT ( _d, "hh:nn" ) & "</text>"
+			            & "</svg>"
+			    )
+		displayFolder: 1 · Nos projets\Visuels
+		lineageTag: 154fa011-c528-4e03-a383-877c7d080f4f
+		dataCategory: ImageUrl
+
+	measure 'Couleur tâches en cours' =
+			VAR _n = [Tâches en cours]
+			RETURN IF ( NOT ISBLANK ( _n ), IF ( _n = 0, "#8A968F", "#16261F" ) )
+		isHidden
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 0f9b37c9-575c-4d19-b26c-7062ad1f067b
+
+	measure 'Couleur tâches en retard' =
+			VAR _n = [Tâches en retard]
+			RETURN IF ( NOT ISBLANK ( _n ), IF ( _n > 0, "#C63E22", "#8A968F" ) )
+		isHidden
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 5b54fa4b-9811-442c-8d37-65ee38578c73
+
+	measure 'Couleur tâches pas commencées' =
+			VAR _n = [Tâches pas commencées]
+			RETURN IF ( NOT ISBLANK ( _n ), IF ( _n = 0, "#8A968F", "#16261F" ) )
+		isHidden
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: fe6ee52b-93ed-4203-a452-c2885553b8dd
+
+	measure 'Couleur tâches terminées' =
+			VAR _n = [Tâches terminées]
+			RETURN IF ( NOT ISBLANK ( _n ), IF ( _n = 0, "#8A968F", "#16261F" ) )
+		isHidden
+		displayFolder: 1 · Nos projets\Matrice
+		lineageTag: 28be2808-5301-4f8b-a2f1-449959109ad1
+
+	measure 'Charge affectation (h)' =
+			VAR _t = SELECTEDVALUE ( fait_assignment[TacheId] )
+			VAR _n = CALCULATE ( COUNTROWS ( fait_assignment ), REMOVEFILTERS ( fait_assignment ), fait_assignment[TacheId] = _t )
+			RETURN DIVIDE ( SUMX ( fait_assignment, RELATED ( dim_Task[Effort (h)] ) ), _n )
+		formatString: #,##0.0
+		isHidden
+		displayFolder: 2 · Nos ressources
+		lineageTag: 96d06d84-b0a1-455a-9691-db97ad917c7b
+
+	measure 'Nb ressources' = DISTINCTCOUNT ( fait_assignment[RessourceId] )
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: a1938b72-401e-4cd5-aee2-3928ae742685
+
+	measure 'Tâches assignées' = COUNTROWS ( fait_assignment )
+		formatString: #,##0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 4b7ca5c0-b40a-4676-b329-12a1c070833b
+
+	measure 'Tâches par ressource' = DIVIDE ( [Tâches assignées], [Nb ressources] )
+		formatString: 0.0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 483f89eb-3568-46e6-8444-778d13f03af7
+
+	measure 'Projets avec ressources' = COUNTROWS ( SUMMARIZE ( fait_assignment, dim_Task[ProjetId] ) )
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: dae135e0-f044-4793-87c0-6ed2da5f9d3e
+
+	measure 'Affectations en retard' = CALCULATE ( COUNTROWS ( fait_assignment ), KEEPFILTERS ( dim_Task[Statut] = "En retard" ) )
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: bb2a6c80-c729-442f-b6d8-21ed7f406e12
+
+	measure 'Ressources en retard' = CALCULATE ( [Nb ressources], KEEPFILTERS ( dim_Task[Statut] = "En retard" ) )
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: a1f2a1fb-fb31-4e24-be1f-9ac1c3d1af67
+
+	measure 'Moyenne ressources par projet' = AVERAGEX ( FILTER ( ALLSELECTED ( dim_projet[Projet] ), [Nb ressources] > 0 ), [Nb ressources] )
+		formatString: 0.0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 72476d29-337a-4ee1-8242-ca27a8a1d273
+
+	measure 'Volume total (h)' = SUMX ( fait_assignment, [Charge affectation (h)] )
+		formatString: #,##0
+		displayFolder: 2 · Nos ressources
+		lineageTag: f7192032-79cb-44b1-8bae-0d719bc25e88
+
+	measure 'Volume réalisé (h)' =
+			IF (
+			    NOT ISBLANK ( [Volume total (h)] ),
+			    SUMX ( fait_assignment, [Charge affectation (h)] * RELATED ( dim_Task[Avancement] ) ) + 0
+			)
+		formatString: #,##0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 1c2ed139-3433-4554-9f8b-a37583869381
+
+	measure 'Volume en cours (h)' =
+			IF (
+			    NOT ISBLANK ( [Volume total (h)] ),
+			    SUMX (
+			        FILTER ( fait_assignment, VAR _a = RELATED ( dim_Task[Avancement] ) RETURN _a > 0 && _a < 1 ),
+			        [Charge affectation (h)] * ( 1 - RELATED ( dim_Task[Avancement] ) )
+			    ) + 0
+			)
+		formatString: #,##0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 8d82c0a5-f0ed-4378-8588-49705a944b56
+
+	measure 'Volume restant (h)' =
+			IF (
+			    NOT ISBLANK ( [Volume total (h)] ),
+			    SUMX ( FILTER ( fait_assignment, RELATED ( dim_Task[Avancement] ) = 0 ), [Charge affectation (h)] ) + 0
+			)
+		formatString: #,##0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 4112f850-4597-4c9c-80a6-cb5c6bcc3cc8
+
+	measure '% Achèvement ressource' = DIVIDE ( [Volume réalisé (h)], [Volume total (h)] )
+		formatString: 0 %
+		displayFolder: 2 · Nos ressources
+		lineageTag: d7d465a5-816e-4c55-b587-cdc6abd45467
+
+	measure 'Charge mensuelle (h)' =
+			VAR _d1 = MIN ( dim_date[Date] )
+			VAR _d2 = MAX ( dim_date[Date] )
+			VAR _aff = CALCULATETABLE ( fait_assignment, REMOVEFILTERS ( dim_date ) )
+			RETURN
+			    IF (
+			        NOT ISEMPTY ( _aff ),
+			        SUMX (
+			            _aff,
+			            VAR _deb = fait_assignment[Début]
+			            VAR _fin = fait_assignment[Fin]
+			            VAR _charge = CALCULATE ( [Charge affectation (h)], REMOVEFILTERS ( dim_date ) )
+			            VAR _jours = NETWORKDAYS ( _deb, _fin )
+			            VAR _a = IF ( _deb > _d1, _deb, _d1 )
+			            VAR _b = IF ( _fin < _d2, _fin, _d2 )
+			            VAR _jFen = IF ( _a > _b, 0, NETWORKDAYS ( _a, _b ) )
+			            RETURN
+			                IF ( _jours > 0, DIVIDE ( _charge * _jFen, _jours ), IF ( _deb >= _d1 && _deb <= _d2, _charge, 0 ) )
+			        ) + 0
+			    )
+		formatString: #,##0;-#,##0;"–"
+		displayFolder: 2 · Nos ressources
+		lineageTag: f4ec6c94-7e84-492a-b347-5ec08e2f42b5
+
+	measure 'Seuil surcharge (h)' = 160
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 17d3364a-f1d4-48a7-a1b3-3d5a74ceeffd
+
+	measure 'Ressources en surcharge' =
+			VAR _mois =
+			    CALCULATETABLE (
+			        VALUES ( dim_date[Début de mois] ),
+			        REMOVEFILTERS ( dim_date ),
+			        dim_date[Décalage mois] >= 0,
+			        dim_date[Décalage mois] <= 5
+			    )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            CALCULATETABLE ( VALUES ( dim_resource[RessourceId] ), fait_assignment ),
+			            MAXX (
+			                _mois,
+			                VAR _m = dim_date[Début de mois]
+			                RETURN CALCULATE ( [Charge mensuelle (h)], REMOVEFILTERS ( dim_date ), dim_date[Début de mois] = _m )
+			            ) > [Seuil surcharge (h)]
+			        )
+			    ) + 0
+		formatString: 0
+		displayFolder: 2 · Nos ressources
+		lineageTag: 9cfa0ec5-b3c7-46c7-a2d7-f640e34f7d0d
+
+	measure 'Libellé fin fenêtre' =
+			VAR _d = CALCULATE ( MAX ( dim_date[Date] ), REMOVEFILTERS ( dim_date ), dim_date[Décalage mois] = 5 )
+			RETURN FORMAT ( _d, "mmmm yyyy" )
+		isHidden
+		displayFolder: 2 · Nos ressources
+		lineageTag: 782eb0b8-b6e5-4afa-8a57-562ab581e810
+
+	measure 'Libellé début fenêtre' =
+			VAR _d = CALCULATE ( MIN ( dim_date[Date] ), REMOVEFILTERS ( dim_date ), dim_date[Décalage mois] = 0 )
+			RETURN FORMAT ( _d, "mmm yyyy" )
+		isHidden
+		displayFolder: 2 · Nos ressources
+		lineageTag: ef746bcc-c2ab-4f44-990e-9b34cc107f60
+
+	measure 'Début (ressource)' = MIN ( fait_assignment[Début] )
+		formatString: dd/mm/yyyy
+		displayFolder: 2 · Nos ressources\Matrice
+		lineageTag: 1faeb939-db01-4f8e-8a44-cfb55d68234c
+
+	measure 'Fin (ressource)' = MAX ( fait_assignment[Fin] )
+		formatString: dd/mm/yyyy
+		displayFolder: 2 · Nos ressources\Matrice
+		lineageTag: f237c302-8641-4b46-b3d0-f8e425d8da72
+
+	measure 'Barre achèvement ressource' =
+			VAR _p = MIN ( MAX ( [% Achèvement ressource], 0 ), 1 )
+			VAR _graisse = IF ( ISINSCOPE ( dim_projet[Projet] ), "400", "600" )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( [Volume total (h)] ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='24' viewBox='0 0 150 24'>"
+			            & "<rect x='0' y='9' width='104' height='6' rx='3' fill='%23E9EEEB'/>"
+			            & IF ( _p > 0, "<rect x='0' y='9' width='" & MAX ( INT ( _p * 104 ), 6 ) & "' height='6' rx='3' fill='%23009043'/>" )
+			            & "<text x='150' y='16' text-anchor='end' font-family='Segoe UI' font-size='12.5' font-weight='" & _graisse & "' fill='%2316261F'>"
+			            & FORMAT ( _p * 100, "0" ) & " %25</text>"
+			            & "</svg>"
+			    )
+		displayFolder: 2 · Nos ressources\Matrice
+		lineageTag: 3bd3b9d5-1661-440a-a765-afcc5003d450
+		dataCategory: ImageUrl
+
+	measure 'KPI ressources (svg)' =
+			VAR _valeur = FORMAT ( [Nb ressources] + 0, "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Projets avec ressources] + 0, "0" )
+			VAR _apres = IF ( [Projets avec ressources] > 1, " projets", " projet" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'>mobilisées sur <tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: ebc0d416-d196-4bd7-a608-a3ef386cd055
+		dataCategory: ImageUrl
+
+	measure 'KPI tâches assignées (svg)' =
+			VAR _valeur = FORMAT ( [Tâches assignées] + 0, "#,##0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( COALESCE ( [Tâches par ressource], 0 ), "0.0" )
+			VAR _apres = " par ressource en moyenne"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: 0c4f3595-09d4-48cf-9ef3-180ac2363a3c
+		dataCategory: ImageUrl
+
+	measure 'KPI ressources en retard (svg)' =
+			VAR _valeur = FORMAT ( [Ressources en retard] + 0, "0" )
+			VAR _unite = ""
+			VAR _couleur = IF ( [Ressources en retard] > 0, "%23C63E22", "%2316261F" )
+			VAR _gras = FORMAT ( [Affectations en retard] + 0, "0" )
+			VAR _apres = IF ( [Affectations en retard] > 1, " tâches en retard affectées", " tâche en retard affectée" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: e2b63eb1-af01-435f-90d2-ef63598fee32
+		dataCategory: ImageUrl
+
+	measure 'KPI surcharge (svg)' =
+			VAR _valeur = FORMAT ( [Ressources en surcharge], "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Seuil surcharge (h)], "0" ) & " h"
+			VAR _apres = " / mois d'ici " & [Libellé fin fenêtre]
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'>> <tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: 4a8e2282-7a75-4547-9506-ab5a5fec3ac7
+		dataCategory: ImageUrl
+
+	measure 'KPI volume (svg)' =
+			VAR _valeur = FORMAT ( [Volume total (h)] + 0, "#,##0" )
+			VAR _unite = "h"
+			VAR _couleur = "%2316261F"
+			VAR _gras = ""
+			VAR _apres = ""
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='60' viewBox='0 0 190 60'>"
+			        & "<text x='1' y='32' font-family='Segoe UI' font-size='29.33' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='18' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='53' font-family='Segoe UI' font-size='12' fill='%2366736C'>charge planifiée totale<tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: 3f5438a6-d726-4a4b-971d-69878080cda7
+		dataCategory: ImageUrl
+
+	measure 'Répartition volume (svg)' =
+			VAR _r = [Volume réalisé (h)] + 0
+			VAR _c = [Volume en cours (h)] + 0
+			VAR _s = [Volume restant (h)] + 0
+			VAR _tot = _r + _c + _s
+			VAR _w = 604
+			VAR _g = 4
+			VAR _b1 = IF ( _tot > 0, INT ( _r / _tot * _w + 0.5 ), 0 )
+			VAR _b2 = IF ( _tot > 0, INT ( ( _r + _c ) / _tot * _w + 0.5 ), 0 )
+			VAR _blocs =
+			    DATATABLE (
+			        "Ordre", INTEGER, "Libelle", STRING, "Couleur", STRING,
+			        {
+			            { 0, "Réalisé", "%2300734E" },
+			            { 1, "En cours (reste à faire)", "%233F86C8" },
+			            { 2, "Restant (non démarré)", "%23B4BFB9" }
+			        }
+			    )
+			VAR _libelles =
+			    CONCATENATEX (
+			        _blocs,
+			        VAR _x = [Ordre] * 208
+			        VAR _h = SWITCH ( [Ordre], 0, _r, 1, _c, _s )
+			        RETURN
+			            "<rect x='" & _x + 1 & "' y='5' width='9' height='9' rx='2' fill='" & [Couleur] & "'/>"
+			                & "<text x='" & _x + 15 & "' y='14' font-family='Segoe UI' font-size='14' fill='%234E5D55'>" & [Libelle] & "</text>"
+			                & "<text x='" & _x + 1 & "' y='38' font-family='Segoe UI' font-size='18' font-weight='700' fill='%2316261F'>"
+			                & FORMAT ( _h, "#,##0" ) & " h<tspan dx='5' font-size='12' font-weight='400' fill='%2366736C'>"
+			                & FORMAT ( DIVIDE ( _h, _tot ) * 100 + 0, "0.0" ) & " %25</tspan></text>",
+			        "",
+			        [Ordre], ASC
+			    )
+			// 100 % bar: one rounded segment per non-empty volume, 4 px gap between segments
+			VAR _seg1 = IF ( _b1 > 0, "<rect x='0' y='54' width='" & MAX ( _b1 - IF ( _b1 < _w, _g, 0 ), 2 ) & "' height='10' rx='5' fill='%2300734E'/>" )
+			VAR _seg2 = IF ( _b2 > _b1, "<rect x='" & _b1 & "' y='54' width='" & MAX ( _b2 - _b1 - IF ( _b2 < _w, _g, 0 ), 2 ) & "' height='10' rx='5' fill='%233F86C8'/>" )
+			VAR _seg3 = IF ( _w > _b2 && _tot > 0, "<rect x='" & _b2 & "' y='54' width='" & MAX ( _w - _b2, 2 ) & "' height='10' rx='5' fill='%23B4BFB9'/>" )
+			VAR _vide = IF ( _tot = 0, "<rect x='0' y='54' width='604' height='10' rx='5' fill='%23E9EEEB'/>" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='604' height='68' viewBox='0 0 604 68'>"
+			        & _libelles & _vide & _seg1 & _seg2 & _seg3
+			        & "</svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: e35c0444-8242-406c-82e2-e6ede55d1800
+		dataCategory: ImageUrl
+
+	measure 'Sous-titre charge (svg)' =
+			"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='520' height='20' viewBox='0 0 520 20'>"
+			    & "<text x='1' y='14' font-family='Segoe UI' font-size='12.67' fill='%2366736C'>Heures par ressource · les plus chargées "
+			    & IF ( LEFT ( [Libellé début fenêtre], 1 ) IN { "a", "o" }, "d'", "de " )
+			    & [Libellé début fenêtre] & " à " & [Libellé fin fenêtre] & "</text></svg>"
+		displayFolder: 2 · Nos ressources\Visuels
+		lineageTag: 0c3c7687-577b-4d17-9020-61f43db57783
+		dataCategory: ImageUrl
+
+	measure 'Date de référence' =
+			VAR _d = MAX ( Actualisation[Date] )
+			RETURN IF ( ISBLANK ( _d ), TODAY (), DATE ( YEAR ( _d ), MONTH ( _d ), DAY ( _d ) ) )
+		formatString: dd/mm/yyyy
+		displayFolder: 3 · Timeline
+		lineageTag: cb6c3147-869f-4c8b-80f7-acca893ef017
+
+	measure 'Jalons (liste)' =
+			CONCATENATEX (
+			    CALCULATETABLE ( dim_Task, dim_Task[Jalon] = TRUE () ),
+			    FORMAT ( dim_Task[Échéance], "yyyy-mm-dd" ) & "~" & SUBSTITUTE ( SUBSTITUTE ( dim_Task[Tâche], "|", "/" ), "~", "-" ),
+			    "|",
+			    dim_Task[Échéance], ASC
+			)
+		displayFolder: 3 · Timeline
+		lineageTag: a2beaff4-6064-4513-9fc0-3a962404d1db
+
+	measure 'Projets actifs' = [Projets en cours] + [Projets en retard]
+		formatString: 0
+		displayFolder: 3 · Timeline
+		lineageTag: a5227ecd-1c1e-4a10-b11e-5889bc3d6b03
+
+	measure 'Retard cumulé (j)' = SUM ( dim_projet[Jours de retard] ) + 0
+		formatString: #,##0
+		displayFolder: 3 · Timeline
+		lineageTag: c4fdeb79-29a4-4b56-b450-3f93df47af87
+
+	measure 'Fins prévues au trimestre' =
+			VAR _ref = [Date de référence]
+			VAR _deb = DATE ( YEAR ( _ref ), ( QUARTER ( _ref ) - 1 ) * 3 + 1, 1 )
+			VAR _fin = EOMONTH ( _deb, 2 )
+			RETURN COUNTROWS ( FILTER ( dim_projet, dim_projet[Fin] >= _deb && dim_projet[Fin] <= _fin ) ) + 0
+		formatString: 0
+		displayFolder: 3 · Timeline
+		lineageTag: 9d121ca9-43ff-47fd-873b-66f406230c56
+
+	measure 'Échéances 60 j' =
+			VAR _jours = 60
+			VAR _ref = [Date de référence]
+			VAR _ev =
+			    UNION (
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Début] >= _ref && dim_projet[Début] <= _ref + _jours ),
+			            "Date", dim_projet[Début], "Type", "Démarrage", "Projet", dim_projet[Projet], "Chef", dim_projet[Chef de projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Fin] >= _ref && dim_projet[Fin] <= _ref + _jours ),
+			            "Date", dim_projet[Fin], "Type", "Fin du projet", "Projet", dim_projet[Projet], "Chef", dim_projet[Chef de projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_Task, dim_Task[Jalon] = TRUE () && dim_Task[Échéance] >= _ref && dim_Task[Échéance] <= _ref + _jours ),
+			            "Date", dim_Task[Échéance], "Type", "◆ Jalon : " & dim_Task[Tâche],
+			            "Projet", RELATED ( dim_projet[Projet] ), "Chef", RELATED ( dim_projet[Chef de projet] ) )
+			    )
+			RETURN COUNTROWS ( _ev ) + 0
+		formatString: 0
+		displayFolder: 3 · Timeline
+		lineageTag: 63c467c7-6704-4162-8a49-e225f5ca3891
+
+	measure 'KPI projets actifs (svg)' =
+			VAR _valeur = FORMAT ( [Projets actifs] + 0, "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = FORMAT ( [Projets en cours] + 0, "0" )
+			VAR _apres = " en cours · <tspan font-weight='700' fill='%23C63E22'>" & FORMAT ( [Projets en retard] + 0, "0" ) & "</tspan> en retard"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='52' viewBox='0 0 190 52'>"
+			        & "<text x='1' y='27' font-family='Segoe UI' font-size='27' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='16' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='46' font-family='Segoe UI' font-size='11.5' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: 8ed155f1-f16b-4c0f-bff8-285b60947999
+		dataCategory: ImageUrl
+
+	measure 'KPI fins trimestre (svg)' =
+			VAR _valeur = FORMAT ( [Fins prévues au trimestre], "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = ""
+			VAR _apres = VAR _ref = [Date de référence]
+			    VAR _deb = DATE ( YEAR ( _ref ), ( QUARTER ( _ref ) - 1 ) * 3 + 1, 1 )
+			    VAR _l = CONCATENATEX ( TOPN ( 4, FILTER ( dim_projet, dim_projet[Fin] >= _deb && dim_projet[Fin] <= EOMONTH ( _deb, 2 ) ), dim_projet[Fin], ASC ),
+			                            FORMAT ( dim_projet[Fin], "dd/mm" ), " · ", dim_projet[Fin], ASC )
+			    RETURN IF ( _l = "", "aucune fin prévue ce trimestre", _l )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='52' viewBox='0 0 190 52'>"
+			        & "<text x='1' y='27' font-family='Segoe UI' font-size='27' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='16' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='46' font-family='Segoe UI' font-size='11.5' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: c68a8116-5208-4af8-8957-7e628d6af309
+		dataCategory: ImageUrl
+
+	measure 'KPI échéances 60 j (svg)' =
+			VAR _valeur = FORMAT ( [Échéances 60 j], "0" )
+			VAR _unite = ""
+			VAR _couleur = "%2316261F"
+			VAR _gras = ""
+			VAR _apres = "jalons, démarrages et fins"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='52' viewBox='0 0 190 52'>"
+			        & "<text x='1' y='27' font-family='Segoe UI' font-size='27' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='16' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='46' font-family='Segoe UI' font-size='11.5' fill='%2366736C'><tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: 9f254af0-76cb-4e1d-84ec-168f638e0345
+		dataCategory: ImageUrl
+
+	measure 'KPI retard cumulé (svg)' =
+			VAR _valeur = FORMAT ( [Retard cumulé (j)], "#,##0" )
+			VAR _unite = "j"
+			VAR _couleur = IF ( [Retard cumulé (j)] > 0, "%23C63E22", "%2316261F" )
+			VAR _gras = FORMAT ( [Projets en retard] + 0, "0" )
+			VAR _apres = IF ( [Projets en retard] > 1, " projets en retard", " projet en retard" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='52' viewBox='0 0 190 52'>"
+			        & "<text x='1' y='27' font-family='Segoe UI' font-size='27' font-weight='700' fill='" & _couleur & "'>" & _valeur
+			        & "<tspan dx='3' font-size='16' font-weight='600' fill='%234E5D55'>" & _unite & "</tspan></text>"
+			        & "<text x='1' y='46' font-family='Segoe UI' font-size='11.5' fill='%2366736C'>sur <tspan font-weight='700' fill='%2316261F'>" & _gras & "</tspan>" & _apres & "</text>"
+			        & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: ac6d4513-9480-4a86-aab8-b33654a95e03
+		dataCategory: ImageUrl
+
+	measure 'Titre fins trimestre (svg)' =
+			"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='170' height='20' viewBox='0 0 170 20'>"
+			    & "<text x='1' y='14' font-family='Segoe UI' font-size='12.67' font-weight='600' fill='%234E5D55'>Fins prévues au T"
+			    & QUARTER ( [Date de référence] ) & "</text></svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: 787fecee-b322-453b-9940-24b1ef6d4f64
+		dataCategory: ImageUrl
+
+	measure 'Sous-titre planning (svg)' =
+			VAR _d1 = MIN ( dim_projet[Début] )
+			VAR _d2 = MAX ( dim_projet[Fin] )
+			VAR _periode = IF ( NOT ISBLANK ( _d1 ), " · " & FORMAT ( _d1, "mmmm yyyy" ) & " → " & FORMAT ( _d2, "mmmm yyyy" ) )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='20' viewBox='0 0 600 20'>"
+			        & "<text x='1' y='14' font-family='Segoe UI' font-size='12.67' fill='%2366736C'>Regroupé par chef de projet"
+			        & _periode & "</text></svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: 13f14709-1c3c-4b74-8155-efa75ab647aa
+		dataCategory: ImageUrl
+
+	measure 'Liste échéances (svg)' =
+			VAR _jours = 60
+			VAR _ref = [Date de référence]
+			VAR _ev =
+			    UNION (
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Début] >= _ref && dim_projet[Début] <= _ref + _jours ),
+			            "Date", dim_projet[Début], "Type", "Démarrage", "Projet", dim_projet[Projet], "Chef", dim_projet[Chef de projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Fin] >= _ref && dim_projet[Fin] <= _ref + _jours ),
+			            "Date", dim_projet[Fin], "Type", "Fin du projet", "Projet", dim_projet[Projet], "Chef", dim_projet[Chef de projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_Task, dim_Task[Jalon] = TRUE () && dim_Task[Échéance] >= _ref && dim_Task[Échéance] <= _ref + _jours ),
+			            "Date", dim_Task[Échéance], "Type", "◆ Jalon : " & dim_Task[Tâche],
+			            "Projet", RELATED ( dim_projet[Projet] ), "Chef", RELATED ( dim_projet[Chef de projet] ) )
+			    )
+			VAR _top = TOPN ( 5, _ev, [Date], ASC, [Projet], ASC )
+			VAR _rang =
+			    ADDCOLUMNS ( _top, "@r", VAR _d = [Date] VAR _p = [Projet] RETURN COUNTROWS ( FILTER ( _top, [Date] < _d || ( [Date] = _d && [Projet] < _p ) ) ) )
+			VAR _lignes =
+			    CONCATENATEX (
+			        _rang,
+			        VAR _y = [@r] * 59
+			        VAR _j = INT ( [Date] - _ref )
+			        VAR _proche = _j <= 7
+			        VAR _c = [Chef]
+			        VAR _sp = SEARCH ( " ", _c, 1, 0 )
+			        VAR _chef = IF ( _sp > 0, LEFT ( _c, 1 ) & ". " & MID ( _c, _sp + 1, 40 ), _c )
+			        VAR _projet = SUBSTITUTE ( SUBSTITUTE ( [Projet], "&", "et" ), "<", "" )
+			        VAR _type = SUBSTITUTE ( SUBSTITUTE ( [Type], "&", "et" ), "<", "" )
+			        VAR _pill = "J-" & _j
+			        VAR _wPill = 14 + LEN ( _pill ) * 7
+			        RETURN
+			            "<rect x='0' y='" & _y & "' width='44' height='44' rx='10' fill='" & IF ( _proche, "%23FFF0DC", "%23F3F6F4" ) & "'/>"
+			                & "<text x='22' y='" & _y + 21 & "' text-anchor='middle' font-family='Segoe UI' font-size='15' font-weight='700' fill='%2316261F'>" & FORMAT ( [Date], "dd" ) & "</text>"
+			                & "<text x='22' y='" & _y + 35 & "' text-anchor='middle' font-family='Segoe UI' font-size='9' font-weight='700' fill='" & IF ( _proche, "%238A4500", "%2366736C" ) & "'>" & UPPER ( FORMAT ( [Date], "mmm" ) ) & "</text>"
+			                & "<text x='56' y='" & _y + 18 & "' font-family='Segoe UI' font-size='13' font-weight='600' fill='%2316261F'>" & LEFT ( _projet, 34 ) & "</text>"
+			                & "<text x='56' y='" & _y + 35 & "' font-family='Segoe UI' font-size='11.5' fill='%2366736C'>" & LEFT ( _type & " · " & _chef, 52 ) & "</text>"
+			                & "<rect x='" & 400 - _wPill & "' y='" & _y + 13 & "' width='" & _wPill & "' height='19' rx='9' fill='" & IF ( _proche, "%23FFE6C7", "%23EEF1EF" ) & "'/>"
+			                & "<text x='" & 400 - INT ( _wPill / 2 ) & "' y='" & _y + 27 & "' text-anchor='middle' font-family='Segoe UI' font-size='11' font-weight='700' fill='" & IF ( _proche, "%238A4500", "%234E5D55" ) & "'>" & _pill & "</text>"
+			                & IF ( [@r] < COUNTROWS ( _top ) - 1, "<rect x='0' y='" & _y + 51 & "' width='400' height='1' fill='%23EEF2EF'/>" ),
+			        "",
+			        [@r], ASC
+			    )
+			// nothing within 60 days: say so, and give the next known event
+			VAR _jours2 = 3650
+			VAR _suivant = TOPN ( 1, UNION (
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Début] > _ref ), "Date", dim_projet[Début], "Type", "démarrage", "Projet", dim_projet[Projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_projet, dim_projet[Fin] > _ref ), "Date", dim_projet[Fin], "Type", "fin", "Projet", dim_projet[Projet] ),
+			        SELECTCOLUMNS ( FILTER ( dim_Task, dim_Task[Jalon] = TRUE () && dim_Task[Échéance] > _ref ), "Date", dim_Task[Échéance], "Type", "jalon", "Projet", RELATED ( dim_projet[Projet] ) ) ),
+			    [Date], ASC )
+			VAR _vide =
+			    "<text x='0' y='20' font-family='Segoe UI' font-size='13' font-weight='600' fill='%2316261F'>Aucune échéance dans les 60 prochains jours</text>"
+			        & IF ( NOT ISEMPTY ( _suivant ),
+			            "<text x='0' y='40' font-family='Segoe UI' font-size='11.5' fill='%2366736C'>Prochaine : "
+			                & MAXX ( _suivant, [Type] & " de " & SUBSTITUTE ( SUBSTITUTE ( [Projet], "&", "et" ), "<", "" ) & " le " & FORMAT ( [Date], "dd/mm/yyyy" )
+			                    & " (J-" & INT ( [Date] - _ref ) & ")" ) & "</text>" )
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'>"
+			        & IF ( ISEMPTY ( _ev ), _vide, _lignes ) & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: 4805509b-f820-4948-9f2c-6f7648083b59
+		dataCategory: ImageUrl
+
+	measure 'Liste retards (svg)' =
+			VAR _retards =
+			    FILTER ( ADDCOLUMNS ( VALUES ( dim_projet[Projet] ),
+			        "@j", CALCULATE ( SUM ( dim_projet[Jours de retard] ) ),
+			        "@chef", CALCULATE ( SELECTEDVALUE ( dim_projet[Chef de projet] ) ),
+			        "@fin", CALCULATE ( MAX ( dim_projet[Fin] ) ),
+			        "@pct", [Avancement projet] ), [@j] > 0 )
+			VAR _n = COUNTROWS ( _retards )
+			VAR _top = TOPN ( 3, _retards, [@j], DESC, dim_projet[Projet], ASC )
+			VAR _rang =
+			    ADDCOLUMNS ( _top, "@r", VAR _j0 = [@j] VAR _p0 = dim_projet[Projet] RETURN COUNTROWS ( FILTER ( _top, [@j] > _j0 || ( [@j] = _j0 && dim_projet[Projet] < _p0 ) ) ) )
+			VAR _lignes =
+			    CONCATENATEX (
+			        _rang,
+			        VAR _y = [@r] * 54
+			        VAR _p = MIN ( MAX ( [@pct], 0 ), 1 )
+			        VAR _pill = "+" & FORMAT ( [@j], "0" ) & " j"
+			        VAR _wPill = 14 + LEN ( _pill ) * 7
+			        VAR _nom = SUBSTITUTE ( SUBSTITUTE ( dim_projet[Projet], "&", "et" ), "<", "" )
+			        VAR _chef = SUBSTITUTE ( [@chef], "&", "et" )
+			        RETURN
+			            "<text x='0' y='" & _y + 13 & "' font-family='Segoe UI' font-size='13' font-weight='600' fill='%2316261F'>" & LEFT ( _nom, 40 ) & "</text>"
+			                & "<rect x='" & 400 - _wPill & "' y='" & _y & "' width='" & _wPill & "' height='18' rx='9' fill='%23FDEAE5'/>"
+			                & "<text x='" & 400 - INT ( _wPill / 2 ) & "' y='" & _y + 13 & "' text-anchor='middle' font-family='Segoe UI' font-size='11' font-weight='700' fill='%23A93218'>" & _pill & "</text>"
+			                & "<text x='0' y='" & _y + 30 & "' font-family='Segoe UI' font-size='11.5' fill='%2366736C'>" & LEFT ( _chef, 30 ) & " · fin prévue le " & FORMAT ( [@fin], "dd/mm/yyyy" ) & "</text>"
+			                & "<rect x='0' y='" & _y + 38 & "' width='332' height='7' rx='3' fill='%23FBDCD3'/>"
+			                & IF ( _p > 0, "<rect x='0' y='" & _y + 38 & "' width='" & MAX ( INT ( _p * 332 ), 7 ) & "' height='7' rx='3' fill='%23EF5B3A'/>" )
+			                & "<text x='400' y='" & _y + 45 & "' text-anchor='end' font-family='Segoe UI' font-size='11.5' font-weight='700' fill='%2316261F'>" & FORMAT ( _p * 100, "0" ) & " %25</text>",
+			        "",
+			        [@r], ASC
+			    )
+			VAR _autres = IF ( _n > 3, "<text x='400' y='176' text-anchor='end' font-family='Segoe UI' font-size='11' fill='%2366736C'>+ " & _n - 3 & IF ( _n - 3 > 1, " autres projets en retard", " autre projet en retard" ) & "</text>" )
+			VAR _vide = "<text x='0' y='20' font-family='Segoe UI' font-size='13' font-weight='600' fill='%2300734E'>Aucun projet en retard</text>"
+			RETURN
+			    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='180' viewBox='0 0 400 180'>"
+			        & IF ( _n > 0, _lignes & _autres, _vide ) & "</svg>"
+		displayFolder: 3 · Timeline\Visuels
+		lineageTag: b01b1f76-4eb3-419f-b91e-811aa9736ad3
+		dataCategory: ImageUrl
+
+	column Colonne
+		dataType: string
+		isHidden
+		lineageTag: 994dabcb-3b26-4c09-898c-770561af1038
+		summarizeBy: none
+		sourceColumn: Colonne
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Mesures = m
+		mode: import
+		source = #table(type table [Colonne = text], {})
+
+	annotation PBI_ResultType = Table
+
